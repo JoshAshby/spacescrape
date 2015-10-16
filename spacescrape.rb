@@ -23,34 +23,20 @@ DB = Sequel.connect 'sqlite://db/app.sqlite3'
 Sequel.extension :migration
 Sequel::Migrator.run DB, File.join(File.dirname(__FILE__), 'db', 'migrations')
 
-%w| workers models lib |.each do |dir|
+# Require all of our code... This allows us to avoid having to do a lot of
+# require_relatives all over the place, leaving us to only require the external
+# gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
+%w| workers models lib db |.each do |dir|
   directory = File.join(File.dirname(__FILE__), dir, '*.rb')
   Dir[directory].each do |file|
     require_relative file
   end
 end
 
-def load_data
-  starter = YAML.load DATA.read
+crawler_cache = File.join(File.dirname(__FILE__), 'crawler_cache')
+Dir.mkdir crawler_cache unless Dir.exist? crawler_cache
 
-  # where should we start off looking for things?
-  # seed_urls = starter['seed_urls'].map &:freeze
-
-  # What qualifies the page as something we should look for?
-  starter['keywords'].each do |keyword|
-    tupil = keyword.split('^', 2)
-
-    Keyword.find_or_create keyword: tupil[0] do |model|
-      model.weight = tupil[1].to_i || 1
-    end
-  end
-
-  Setting.find_or_create name: 'play_nice_timeout' do |model|
-    model.value = starter['play_nice_timeout'].to_i || 1
-  end
-end
-
-load_data
+load_seeds
 
 class MainApp < Sinatra::Base
   get '/' do
@@ -61,35 +47,4 @@ class MainApp < Sinatra::Base
     ScraperWorker.perform_async params['url'] if params['url']
     redirect to('/')
   end
-
-  run! if app_file == $0
 end
-
-__END__
-play_nice_timeout: 1
-
-seed_urls:
-  - https://en.wikipedia.org/wiki/NASA
-
-keywords:
-  - nasa^10
-  - space
-  - apollo
-  - gemini
-  - mercury
-  - spacecraft
-  - space craft
-  - soviet union
-  - roscosmos
-  - star city
-  - space shuttle
-  - international space station
-  - iss
-  - soyuz
-  - cape canaveral
-  - earth
-  - galaxy
-  - universe
-  - nebula
-  - planets
-  - moon

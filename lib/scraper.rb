@@ -3,23 +3,27 @@ require 'pathname'
 require 'uri'
 
 require 'mechanize'
-require 'readability'
-require 'loofah'
 
 class Scraper
   def initialize url
-    @page = agent.get url
+    @url = url
+    scrape
+  end
+
+  def scrape
+    @page = agent.get @url
     return unless @page.content_type =~ /html/
 
-    content = Readability::Document.new @page.body
+    save_cache
+    save_scrape
 
-    doc = Loofah.fragment(content.content).scrub!(:strip)
-
-    debugger
+    analyze
 
     @page.links.each{ |link| queue_link link.resolved_uri }
+  end
 
-    save_cache
+  def analyze
+    Analyzer.new @page.body
   end
 
   def agent
@@ -33,15 +37,23 @@ class Scraper
   def queue_link link
   end
 
-  def filename
+  def save_cache
+    # There is probably a better way to do this...
     ext = Pathname.new( @page.filename ).extname
-    [ sha_hash, ext ].join
+    filename = [ sha_hash, ext ].join
+
+    hash_start  = filename.slice! 0..2
+    start_path = File.join 'crawler_cache/', hash_start
+    Dir.mkdir start_path  unless Dir.exist? start_path
+
+    hash_middle  = filename.slice! 0..2
+    middle_path = File.join start_path, hash_middle
+    Dir.mkdir middle_path  unless Dir.exist? middle_path
+
+    filepath = File.join middle_path, filename
+    File.write filepath, @page.content.to_s
   end
 
-  def save_cache
-    filepath = File.join 'crawler_cache/', filename
-
-    # TODO: dir by hash parts? things?
-    File.write filepath, @page.content.to_s
+  def save_scrape
   end
 end

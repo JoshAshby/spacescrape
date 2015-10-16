@@ -8,15 +8,13 @@ class ScraperWorker
     host = URI(url).host
     key = Redis.current.get Redis::Helpers.key(host, :nice)
 
-    if key
-      fail StandardError, "Attempted to be mean to #{ host }!"
-    end
+    fail StandardError, "Attempted to be mean to #{ host }!" if key
 
     Redis.current.setex Redis::Helpers.key(host, :nice), 1, Time.now.utc
   end
 
   def perform url
     play_nice_with url
-    Scraper.new(url)
+    Scraper.new url
   end
 end
