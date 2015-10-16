@@ -4,8 +4,6 @@ require 'loofah'
 class Analyzer
   def initialize html
     @document = html
-
-    analyze
   end
 
   def readability
@@ -32,7 +30,7 @@ class Analyzer
       occurrences = 0.00
       sanitized.downcase.scan(keyword.keyword) { occurrences += 1 }
 
-      weighted_match = ( occurrences / word_count ) * keyword.weight
+      weighted_match = ( occurrences / word_count ) * keyword.weight.to_f
       percentage_match = weighted_match * 100
 
       memo.merge({ keyword.keyword => percentage_match })

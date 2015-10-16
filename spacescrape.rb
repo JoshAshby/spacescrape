@@ -4,9 +4,6 @@ require 'bundler/setup'
 require 'awesome_print'
 require 'byebug'
 
-require 'yaml'
-require 'logger'
-
 require 'sqlite3'
 require 'sequel'
 
@@ -19,15 +16,22 @@ $current_dir = File.dirname(__FILE__)
 
 %w| crawler_cache logs |.each do |dirname|
   dir = File.join $current_dir, dirname
-  Dir.mkdir dir unless Dir.exist? dir
+  FileUtils.mkdir_p dir
 end
 
 $logger = Logger.new File.join($current_dir, 'logs', 'server.log')
 $logger.level = Logger::DEBUG
 
+# Redis stuff
 Redis.current = Redis.new
-DB = Sequel.connect 'sqlite://db/app.sqlite3'
 
+# Setup our SQL database for things
+DB = Sequel.connect 'sqlite://db/app.sqlite3'
+Sequel::Model.db = DB
+Sequel::Model.plugin :update_or_create
+Sequel::Model.plugin :timestamps
+
+# Autorun all of our migrations, just to be safe
 Sequel.extension :migration
 Sequel::Migrator.run DB, File.join($current_dir, 'db', 'migrations')
 
@@ -41,17 +45,26 @@ Sequel::Migrator.run DB, File.join($current_dir, 'db', 'migrations')
   end
 end
 
+# Load up our seed data too
 load_seeds
 
+# Finally the sinatra app to interface with this all...
 class MainApp < Sinatra::Base
   get '/' do
-    @scrapes = Scrape.all
+    @scrapes = Webpage.all
 
     haml :index
   end
 
+  get '/domains' do
+    @domains = Domain.all
+
+    haml :domains
+  end
+
   post '/' do
     ScraperWorker.perform_async params['url'] if params['url']
+
     redirect to('/')
   end
 end

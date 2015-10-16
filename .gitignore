@@ -40,3 +40,4 @@ js-docs/
 public/assets/
 
 crawler_cache/
+.gems/

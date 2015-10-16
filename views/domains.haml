@@ -1,0 +1,12 @@
+%table
+  %thead
+    %tr
+      %th ID
+      %th Url
+      %th Reason
+  %tbody
+    - @domains.each do |scrape|
+      %tr
+        %td= scrape.id
+        %td= scrape.domain
+        %td= scrape.reason

@@ -1,14 +1,19 @@
 Sequel.migration do
   change do
-    create_table? :scrapes do
+    create_table? :webpages do
       primary_key :id
 
       text :title
       text :url
+
       text :domain
+      index :domain
 
       text :sha_hash
-      text :extension
+      index :sha_hash
+
+      datetime :created_at
+      datetime :updated_at
     end
   end
 end

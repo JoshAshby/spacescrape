@@ -7,6 +7,9 @@ Sequel.migration do
       index :keyword, unique: true
 
       integer :weight
+
+      datetime :created_at
+      datetime :updated_at
     end
   end
 end

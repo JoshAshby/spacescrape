@@ -1,81 +1,113 @@
-require 'digest'
-require 'pathname'
-require 'uri'
-
 require 'mechanize'
 
 class Scraper
-  def initialize url
-    @url = url
-    scrape
-  end
+  attr_accessor :url, :page
 
-  def scrape
-    @page = agent.get @url
-    return unless @page.content_type =~ /html/
-
-    save_cache
-    save_scrape
-
-    analyze
-
-    @page.links.each{ |link| queue_link link.resolved_uri }
-
-  rescue Mechanize::UnsupportedSchemeError => e
-    $logger.warn e
-  end
-
-  def analyze
-    Analyzer.new @page.body
+  def initialize url: nil, page: nil
+    @url, @page = url, page
   end
 
   def agent
-    @agent ||= Mechanize.new
-  end
-
-  def sha_hash
-    @sha_hash ||= Digest::SHA256.new << @page.body
-  end
-
-  def queue_link link
-    max = Setting.find{ name =~ 'max_scrapes' }.value.to_i
-
-    current_count = Redis.current.get('spacescrape:current_count').to_i
-
-    return unless current_count <= max
-
-    Redis.current.incr 'spacescrape:current_count'
-
-    ScraperWorker.perform_async link
-  end
-
-  def extension
-    @ext ||= Pathname.new( @page.filename ).extname
-  end
-
-  def save_cache
-    # There is probably a better way to do this...
-    filename = [ sha_hash, extension ].join
-
-    hash_start  = filename.slice! 0..2
-    start_path = File.join 'crawler_cache/', hash_start
-    Dir.mkdir start_path  unless Dir.exist? start_path
-
-    hash_middle  = filename.slice! 0..2
-    middle_path = File.join start_path, hash_middle
-    Dir.mkdir middle_path  unless Dir.exist? middle_path
-
-    filepath = File.join middle_path, filename
-    File.write filepath, @page.content.to_s
-  end
-
-  def save_scrape
-    Scrape.create do |model|
-      model.title = @page.title
-      model.url = @url
-      model.domain = @page.uri.host
-      model.sha_hash = sha_hash
-      model.extension = extension
+    unless @agent
+      @agent = Mechanize.new
+      @agent.user_agent_alias = 'Mac Mozilla'
     end
+
+    @agent
+  end
+
+  def host
+    @host ||= URI(url).host
+  end
+
+  def url
+    unless @url
+      @uri = URI @page.url
+      @url = [ @uri.scheme, '://', @uri.host, @uri.path, @uri.query ].join
+    end
+
+    @url
+  end
+
+  def page
+    @page ||= Webpage.find_or_new url: url do |model|
+      model.sha_hash = Digest::SHA256.new << url
+    end
+  end
+
+  def timeout
+    @timeout ||= Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
+  end
+
+  def in_timeout?
+    key = Redis.current.get Redis::Helpers.key(host, :nice)
+    return true if key
+  end
+
+  def go_to_timeout!
+    Redis.current.setex Redis::Helpers.key(host, :nice), timeout, Time.now.utc.iso8601
+  end
+
+  def maxed_out?
+    max = Setting.find{ name =~ 'max_scrapes' }.value.to_i
+    return Webpage.count >= max
+  end
+
+  def cached?
+    return page.cached?
+  end
+
+  def blacklisted?
+    domain = Domain.find domain: [ host, url ]
+    return unless domain
+    return domain.blacklist
+  end
+
+  def play_nice?
+    return :requeue if in_timeout?
+    return :cancel  if maxed_out?
+    return :cancel  if cached?
+    return :cancel  if blacklisted?
+  end
+
+  def scrape links: true
+    raw_page = agent.get url
+    return unless raw_page.content_type =~ /html/
+
+    go_to_timeout!
+
+    if links
+      scrape.links.each do |link|
+        next if link.resolved_uri.to_s.split('#', 2).first == page.url
+
+        self.class.perform_async link.resolved_uri
+      end
+    end
+
+    raw_page
+  rescue Mechanize::UnsupportedSchemeError, Mechanize::ResponseCodeError => e
+    $logger.warn e
+
+    Domain.update_or_create domain: url do |model|
+      model.reason = [ model.reason, e.message ].join
+      model.blacklist = true
+    end
+
+    nil
+  rescue Mechanize::RobotsDisallowedError => e
+    $logger.warn e
+
+    Domain.update_or_create domain: host do |model|
+      model.reason = [ model.reason, "robots.txt prevents bots" ].join
+      model.blacklist = true
+    end
+
+    nil
+  rescue Sequel::DatabaseError, Sequel::PoolTimeout => e
+    $logger.warn e
+
+    self.class.perform_async url
+
+    nil
   end
 end

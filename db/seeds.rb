@@ -1,37 +1,38 @@
 DATA = <<-YML
 settings:
-  play_nice_timeout: 1
-  max_scrapes: 500
+  play_nice_timeout: 5
+  max_scrapes: 50
+  jitter_threshold: 60
 
 seed_urls:
   - https://en.wikipedia.org/wiki/NASA
 
 keywords:
   - nasa^10
-  - space^1
-  - apollo^1
-  - gemini^1
-  - mercury^1
-  - spacecraft^1
-  - space craft^1
-  - soviet union^1
-  - roscosmos^1
-  - star city^1
-  - space shuttle^1
-  - international space station^1
-  - iss^1
-  - soyuz^1
-  - cape canaveral^1
-  - earth^1
-  - galaxy^1
-  - universe^1
-  - nebula^1
-  - planet^1
-  - moon^1
-  - astronaut^1
-  - cosmonaut^1
-  - mars^1
-  - venus^1
+  - space
+  - apollo
+  - gemini
+  - mercury
+  - spacecraft
+  - space craft
+  - soviet union
+  - roscosmos
+  - star city
+  - space shuttle
+  - international space station
+  - iss
+  - soyuz
+  - cape canaveral
+  - earth
+  - galaxy
+  - universe
+  - nebula
+  - planet
+  - moon
+  - astronaut^5
+  - cosmonaut
+  - mars
+  - venus
 YML
 
 # Make sure that our database has the basic items that we need. Basically a

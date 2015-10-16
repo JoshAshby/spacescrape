@@ -10,7 +10,8 @@ task :reanalyze do
 
       print "\t reanalyzing #{file}..."
       seconds = Benchmark.realtime do
-        Analyzer.new File.read(file)
+        a = Analyzer.new File.read(file)
+        a.analyze
       end
 
       puts " took #{ seconds }"
@@ -18,4 +19,9 @@ task :reanalyze do
   end
 
   puts "Took a total of #{ total_seconds } seconds"
+end
+
+task :cleanup do
+  `rm -rf crawler_cache/ db/app.sqlite3`
+  Redis.current.flushall
 end

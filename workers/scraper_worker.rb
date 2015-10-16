@@ -1,4 +1,3 @@
-require 'redis'
 require 'sidekiq'
 
 class ScraperWorker
@@ -9,50 +8,41 @@ class ScraperWorker
   end
 
   def cancelled?
-    Sidekiq.redis{ |c| c.exists "cancelled-#{jid}" }
+    @cancel ||= Sidekiq.redis{ |c| c.exists "cancelled-#{jid}" }
   end
 
   def cancel!
-    Sidekiq.redis{ |c| c.setex "cancelled-#{jid}", 86400, 1 }
+    @cancel = true
   end
 
   def timeout
     @timeout ||= Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
   end
 
-  def requeue
+  def requeue!
     cancel!
 
-    jitter = SecureRandom.random_number 10
+    jitter_threshold = Setting.find{ name =~ 'jitter_threshold' }.value.to_i
+
+    jitter = SecureRandom.random_number jitter_threshold
     ScraperWorker.perform_in (timeout + jitter), @url
   end
 
-  def host
-    @host ||= URI(@url).host
-  end
-
-  def play_nice_with
-    key = Redis.current.get Redis::Helpers.key(host, :nice)
-
-    return requeue if key
-
-    Redis.current.setex Redis::Helpers.key(host, :nice), timeout, Time.now.utc
-  end
-
-  def check_if_done
-    hostname = host
-    doc = Scrape.find{ domain =~ hostname }
-
-    cancel! if doc
-  end
-
   def perform url
-    @url = url
-    check_if_done
-    play_nice_with
+    @page = Webpage.find_or_new url: url do |model|
+      model.sha_hash = Digest::SHA256.new << url
+    end
 
-    return if cancelled?
+    case @page.scraper.play_nice?
+    when :reschedule
+      return requeue!
+    when :cancel
+      return cancel!
+    end
 
-    Scraper.new @url
+    scrape = @page.scrape
+    return unless scrape
+
+    @page.analyze
   end
 end
