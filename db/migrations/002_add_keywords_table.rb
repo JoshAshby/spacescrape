@@ -3,7 +3,7 @@ Sequel.migration do
     create_table? :keywords do
       primary_key :id
 
-      varchar :keyword
+      text :keyword
       index :keyword, unique: true
 
       integer :weight

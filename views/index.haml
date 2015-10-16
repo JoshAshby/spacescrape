@@ -2,3 +2,20 @@
   %input{ type: :text, name: :url, placeholder: "URL to scrape" }
   %button{ type: :submit }
     Scrape!
+
+%br
+%table
+  %thead
+    %tr
+      %th ID
+      %th Title
+      %th Domain
+      %th Url
+  %tbody
+    - @scrapes.each do |scrape|
+      %tr
+        %td= scrape.id
+        %td= scrape.title
+        %td= scrape.domain
+        %td
+          %a{ href: scrape.url }= scrape.url

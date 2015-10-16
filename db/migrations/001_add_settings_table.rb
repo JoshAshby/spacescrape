@@ -3,10 +3,10 @@ Sequel.migration do
     create_table? :settings do
       primary_key :id
 
-      varchar :name
+      text :name
       index :name, unique: true
 
-      varchar :value
+      text :value
     end
   end
 end
