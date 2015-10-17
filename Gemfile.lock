@@ -92,6 +92,7 @@ DEPENDENCIES
   loofah
   mechanize!
   redis
+  redis-namespace
   ruby-readability
   sequel
   sidekiq

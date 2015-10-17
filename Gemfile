@@ -12,6 +12,7 @@ gem 'sqlite3'
 gem 'sequel'
 
 gem 'redis'
+gem 'redis-namespace'
 
 gem 'sidekiq'
 

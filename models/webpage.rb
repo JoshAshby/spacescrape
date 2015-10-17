@@ -1,23 +1,4 @@
 class Webpage < Sequel::Model
-  def self.fetch uri
-    Webpage.find_or_create url: uri do |model|
-      model.sha_hash = Digest::SHA256.new << uri
-    end
-  end
-
-  def scraper
-    @scraper ||= Scraper.new page: self
-  end
-
-  def scrape
-    scraped_page = scraper.scrape
-
-    self.page = scraped_page.body
-    update title: scraped_page.title, domain: scraped_page.uri.host
-
-    scraped_page
-  end
-
   def analyzer
     @analyzer ||= Analyzer.new @page
   end
@@ -35,6 +16,13 @@ class Webpage < Sequel::Model
      @page ||= File.read cache_path if cached?
   end
 
+  def cached?
+    return false unless sha_hash
+    @cached ||= File.exist? cache_path
+  end
+
+  protected
+
   def cache_key
     @cache_key ||= [ sha_hash[0..1], sha_hash[2..3], sha_hash[4..-1] ]
   end
@@ -50,10 +38,5 @@ class Webpage < Sequel::Model
 
   def cache_path
     @filepath ||= File.join cache_directory, cache_key[2]
-  end
-
-  def cached?
-    return false unless sha_hash
-    @cached ||= File.exist? cache_path
   end
 end

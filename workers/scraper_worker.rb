@@ -29,20 +29,21 @@ class ScraperWorker
   end
 
   def perform url
-    @page = Webpage.find_or_new url: url do |model|
-      model.sha_hash = Digest::SHA256.new << url
+    $logger.debug "Planning on scrapping #{ url }"
+
+    hashless_url = url.split('#', 2).first
+    uri = URI hashless_url
+
+    scraper = Scraper.new url: hashless_url
+    scrape = scraper.scrape
+
+    return cancel! if scrape == :abort
+    return requeue! if scrape == :retry
+
+    Webpage.create url: hashless_url do |model|
+      model.sha_hash = Digest::SHA256.new << hashless_url
+      model.title = scrape.title
+      model.domain = uri.host
     end
-
-    case @page.scraper.play_nice?
-    when :reschedule
-      return requeue!
-    when :cancel
-      return cancel!
-    end
-
-    scrape = @page.scrape
-    return unless scrape
-
-    @page.analyze
   end
 end
