@@ -4,9 +4,12 @@
       %th ID
       %th Url
       %th Reason
+      %th Created At
   %tbody
     - @domains.each do |scrape|
       %tr
         %td= scrape.id
-        %td= scrape.domain
+        %td
+          %a{ href: scrape.domain }= scrape.domain
         %td= scrape.reason
+        %td= scrape.created_at.iso8601 6

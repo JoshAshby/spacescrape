@@ -23,15 +23,13 @@ class Scraper
     # worker...
     if links
       raw_page.links.each do |link|
-        unless url
-          @logger.debug "Can't get url: #{ url }"
-          next
-        end
         next if link.resolved_uri.to_s.split('#', 2).first == url.split('#', 2).first
 
         ScraperWorker.perform_async link.resolved_uri
       end
     end
+
+    save_cache raw_page.body
 
     raw_page
   rescue Mechanize::UnsupportedSchemeError, Mechanize::ResponseCodeError => e
@@ -83,6 +81,7 @@ class Scraper
   end
 
   def in_timeout?
+    $logger.debug "Checking timeout for #{ host }"
     key = Redis.current.get Redis::Helpers.key(host, :nice)
     return true if key
   end
@@ -94,7 +93,9 @@ class Scraper
 
   def maxed_out?
     max = Setting.find{ name =~ 'max_scrapes' }.value.to_i
-    return Webpage.count >= max
+    count = Webpage.count
+    $logger.debug "Count is #{ count } with max #{ max } while checking #{ url }"
+    return count >= max
   end
 
   def sha_hash
@@ -119,14 +120,20 @@ class Scraper
     @filepath ||= File.join cache_directory, cache_key[2]
   end
 
+  def save_cache data
+    File.write cache_path, data
+  end
+
   def cached?
     return false unless sha_hash
     @cached ||= File.exist? cache_path
   end
 
   def blacklisted?
+    $logger.debug "Checking blacklist for #{ host } and #{ url }"
     domain = Domain.find domain: [ host, url ]
     return unless domain
+    $logger.debug "domain #{ host }, #{ url } is blacklisted: #{ domain.blacklisted }" if domain.blacklist
     return domain.blacklist
   end
 end

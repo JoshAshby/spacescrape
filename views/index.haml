@@ -11,6 +11,8 @@
       %th Title
       %th Domain
       %th Url
+      %th Created At
+
   %tbody
     - @scrapes.each do |scrape|
       %tr
@@ -19,3 +21,4 @@
         %td= scrape.domain
         %td
           %a{ href: scrape.url }= scrape.url
+        %td= scrape.created_at.iso8601 6

@@ -25,10 +25,17 @@ class ScraperWorker
     jitter_threshold = Setting.find{ name =~ 'jitter_threshold' }.value.to_i
 
     jitter = SecureRandom.random_number jitter_threshold
-    ScraperWorker.perform_in (timeout + jitter), @url
+    interval = timeout + jitter
+
+    $logger.debug "Requeueing #{ @url } for #{ interval }"
+
+    ScraperWorker.perform_in interval, @url
   end
 
   def perform url
+    @url = url
+    return cancel! unless url
+
     $logger.debug "Planning on scrapping #{ url }"
 
     hashless_url = url.split('#', 2).first

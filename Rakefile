@@ -10,7 +10,7 @@ task :reanalyze do
 
       print "\t reanalyzing #{file}..."
       seconds = Benchmark.realtime do
-        a = Analyzer.new File.read(file)
+        a = Analyzer.new html: File.read(file)
         a.analyze
       end
 

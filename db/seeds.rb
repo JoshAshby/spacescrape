@@ -1,7 +1,7 @@
 DATA = <<-YML
 settings:
-  play_nice_timeout: 5
-  max_scrapes: 50
+  play_nice_timeout: 60
+  max_scrapes: 500
   jitter_threshold: 60
 
 seed_urls:
