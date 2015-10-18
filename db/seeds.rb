@@ -4,6 +4,12 @@ settings:
   max_scrapes: 500
   jitter_threshold: 60
 
+blacklist:
+  - %xxx%
+  - %adult%
+  - %drive.google.com%
+  - %facebook.com%
+
 seed_urls:
   - https://en.wikipedia.org/wiki/NASA
 

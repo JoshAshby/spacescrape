@@ -17,16 +17,35 @@ require 'haml'
 
 $current_dir = File.dirname(__FILE__)
 
+# Make sure we have a directory for logs and the cache so things don't complain
 %w| crawler_cache logs |.each do |dirname|
-  dir = File.join $current_dir, dirname
-  FileUtils.mkdir_p dir
+  FileUtils.mkdir_p File.join($current_dir, dirname)
 end
 
-$logger = Logger.new File.join($current_dir, 'logs', 'server.log')
+# Allow us to log to both the console and a log file at the same time...
+class MultiIO
+  def initialize(*targets)
+     @targets = targets
+  end
+
+  def write(*args)
+    @targets.each {|t| t.write(*args)}
+  end
+
+  def close
+    @targets.each(&:close)
+  end
+end
+
+# setup our logger for everything...
+$logger = Logger.new MultiIO.new(
+  File.open(File.join($current_dir, 'logs', 'server.log'), 'a'),
+  $stdout
+)
 $logger.level = Logger::DEBUG
 
-$redis_conn = -> { Redis::Namespace.new 'spacescrape', redis: Redis.new }
 # Redis stuff
+$redis_conn = -> { Redis::Namespace.new 'spacescrape', redis: Redis.new }
 Redis.current = $redis_conn.call
 
 Sidekiq.configure_server do |config|
@@ -38,7 +57,7 @@ Sidekiq.configure_client do |config|
 end
 
 # Setup our SQL database for things
-DB = Sequel.connect 'sqlite://db/app.sqlite3'
+DB = Sequel.connect 'sqlite://db/app.sqlite3', loggers: [ $logger ]
 Sequel::Model.db = DB
 Sequel::Model.plugin :update_or_create
 Sequel::Model.plugin :timestamps
@@ -63,7 +82,7 @@ end
 load_seeds
 
 # config.ru takes care of firing up the sinatra server, so now all we have to
-# do is sit back an relax
+# do is sit back and relax
 
 at_exit do
   $logger.close

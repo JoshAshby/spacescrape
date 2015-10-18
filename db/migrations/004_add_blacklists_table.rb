@@ -1,13 +1,10 @@
 Sequel.migration do
   change do
-    create_table? :domains do
+    create_table? :blacklists do
       primary_key :id
 
-      text :domain
-      index :domain
-
-      boolean :blacklist
-      index :blacklist
+      text :pattern
+      index :pattern
 
       text :reason
 

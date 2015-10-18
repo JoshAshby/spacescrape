@@ -8,10 +8,12 @@ class Scraper
   end
 
   def scrape links: true
+    return :abort if already_scraped? || blacklisted? || maxed_out?
     return :retry if in_timeout?
-    return :abort if maxed_out? || cached? || blacklisted?
 
     raw_page = agent.get url
+
+    # Not really sure why this is needed, but sometimes the page object doesn't respond to over half of the mechanize page instance methods that is should
     return :abort unless raw_page.respond_to? :content_type
     return :abort unless raw_page.content_type =~ /html/
 
@@ -130,10 +132,9 @@ class Scraper
   end
 
   def blacklisted?
-    $logger.debug "Checking blacklist for #{ host } and #{ url }"
-    domain = Domain.find domain: [ host, url ]
-    return unless domain
-    $logger.debug "domain #{ host }, #{ url } is blacklisted: #{ domain.blacklisted }" if domain.blacklist
-    return domain.blacklist
+    $logger.debug "Checking blacklist for #{ url }"
+    return Blacklist.where do
+      like(lower('google'), domain) |  like(lower('wikipedia'), pattern)
+    end.any?
   end
 end
