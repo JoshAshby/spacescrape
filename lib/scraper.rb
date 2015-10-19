@@ -7,31 +7,23 @@ class Scraper
     @url = url
   end
 
-  def scrape links: true
-    return :abort if already_scraped? || blacklisted? || maxed_out?
+  def scrape!
+    $logger.debug "Attempting to scrape #{ url }"
+
+    return  if blacklisted? || maxed_out?
     return :retry if in_timeout?
 
-    raw_page = agent.get url
+    @raw_page = agent.get url
 
     # Not really sure why this is needed, but sometimes the page object doesn't respond to over half of the mechanize page instance methods that is should
-    return :abort unless raw_page.respond_to? :content_type
-    return :abort unless raw_page.content_type =~ /html/
+    return :abort unless @raw_page.respond_to? :content_type
+    return :abort unless @raw_page.content_type =~ /html/
 
     go_to_timeout!
 
     $logger.debug "Going thru with scraping #{ url }..."
 
-    # TODO: How to get rid of this so that this isn't dependant on the
-    # worker...
-    if links
-      raw_page.links.each do |link|
-        next if link.resolved_uri.to_s.split('#', 2).first == url.split('#', 2).first
-
-        ScraperWorker.perform_async link.resolved_uri
-      end
-    end
-
-    raw_page
+    @raw_page
   rescue Mechanize::UnsupportedSchemeError, Mechanize::ResponseCodeError => e
     $logger.warn e
 
@@ -48,6 +40,13 @@ class Scraper
     $logger.warn e
 
     return :retry
+  end
+
+  def links
+    @links ||= @raw_page.links.map do |link|
+      link_url = link.resolved_uri.to_s.split('#', 2).first
+      link_url if link_url == url
+    end.compact
   end
 
   protected
@@ -95,7 +94,7 @@ class Scraper
   def blacklisted?
     $logger.debug "Checking blacklist for #{ url }"
     return Blacklist.where do
-      like(lower('google'), domain) |  like(lower('wikipedia'), pattern)
+      like(lower('google'), pattern) |  like(lower('wikipedia'), pattern)
     end.any?
   end
 end

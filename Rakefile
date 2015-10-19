@@ -22,6 +22,6 @@ task :reanalyze do
 end
 
 task :cleanup do
-  `rm -rf crawler_cache/ db/app.sqlite3`
+  `rm -r crawler_cache/ db/app.sqlite3`
   Redis.current.flushall
 end
