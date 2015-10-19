@@ -45,7 +45,7 @@ class Scraper
   def links
     @links ||= @raw_page.links.map do |link|
       link_url = link.resolved_uri.to_s.split('#', 2).first
-      link_url if link_url == url
+      link_url unless link_url == url
     end.compact
   end
 
@@ -85,6 +85,7 @@ class Scraper
   end
 
   def maxed_out?
+    return false
     max = Setting.find{ name =~ 'max_scrapes' }.value.to_i
     count = Webpage.count
     $logger.debug "Count is #{ count } with max #{ max } while checking #{ url }"

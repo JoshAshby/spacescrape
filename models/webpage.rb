@@ -6,6 +6,14 @@ class Webpage < Sequel::Model
     self.sha_hash = Digest::SHA256.new << self.url
   end
 
+  def uri
+    @uri ||= URI self.url
+  end
+
+  def host
+    @host ||= uri.host
+  end
+
   def cache= v
     File.write cache_path, v
     @cache = v

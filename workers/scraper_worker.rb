@@ -33,45 +33,47 @@ class ScraperWorker
   end
 
   def scrape
-    $logger.debug "Planning on scrapping #{ @mid }"
+    $logger.debug "Planning on scrapping #{ @id }"
 
-    scraper = Scraper.new(url: @webpage.url)
+    scraper = Scraper.new url: @webpage.url
     scrape = scraper.scrape!
 
-    $logger.debug "Scraped #{ @mid } with result: #{ scrape.kind_of?(Symbol) ? scrape : 'document' }"
+    $logger.debug "Scraped #{ @id } with result: #{ scrape.kind_of?(Symbol) ? scrape : 'document' }"
 
     return cancel!  if scrape == :abort
     return requeue! if scrape == :retry
 
-    $logger.debug "Updating #{ @mid } with scraped info"
+    $logger.debug "Updating #{ @id } with scraped info"
 
     @webpage.update title: scrape.title
     @webpage.cache = scrape.body
-
-    $logger.debug "Queueing links for #{ @mid }"
-
-    scraper.links.each do |link|
-      link_webpage = Webpage.find url: link
-      next if link_webpage
-
-      link_webpage = Webpage.create url: link
-      self.class.perform_async link_webpage.id
-    end
   end
 
-  def perform mid
-    @mid, @webpage = mid, Webpage.find(id: mid)
+  def perform id
+    @id, @webpage = id, Webpage.find(id: id)
     return cancel! unless @webpage
 
     scrape unless @webpage.cached?
 
-    $logger.debug "Extracting and analyzing #{ @mid }"
+    $logger.debug "Extracting and analyzing #{ @id }"
 
-    extract = Extractor.new(html: @webpage.cache).extract!
-    analyze = Analyzer.new(document: extract).analyze!
+    extractor = Extractor.new(html: @webpage.cache)
+    extract   = extractor.extract!
+    analyzer  = Analyzer.new(document: extract)
+    analyze   = analyzer.analyze!
 
     $logger.ap analyze
 
-    $logger.debug "All done with #{ @mid }"
+    $logger.debug "Queueing links for #{ @id }"
+
+    extractor.links.each do |link|
+      link_webpage = Webpage.find_or_new url: link
+      next unless link_webpage.new?
+
+      link_webpage.save
+      self.class.perform_async link_webpage.id
+    end
+
+    $logger.debug "All done with #{ @id }"
   end
 end
