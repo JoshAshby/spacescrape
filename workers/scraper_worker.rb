@@ -27,30 +27,25 @@ class ScraperWorker
     jitter = SecureRandom.random_number jitter_threshold
     interval = timeout + jitter
 
-    $logger.debug "Requeueing #{ @url } for #{ interval }"
+    $logger.debug "Requeueing #{ @mid } for #{ interval }"
 
-    ScraperWorker.perform_in interval, @url
+    ScraperWorker.perform_in interval, @mid
   end
 
-  def perform url
-    @url = url
-    return cancel! unless url
+  def perform mid
+    @mid = mid
+    @webpage = Webpage.find id: @mid
+    return cancel! unless @webpage
 
-    $logger.debug "Planning on scrapping #{ url }"
+    $logger.debug "Planning on scrapping #{ @mid }"
 
-    hashless_url = url.split('#', 2).first
-    uri = URI hashless_url
-
-    scraper = Scraper.new url: hashless_url
+    scraper = Scraper.new url: @webpage.url
     scrape = scraper.scrape
 
-    return cancel! if scrape == :abort
+    return cancel!  if scrape == :abort
     return requeue! if scrape == :retry
 
-    Webpage.create url: hashless_url do |model|
-      model.sha_hash = Digest::SHA256.new << hashless_url
-      model.title = scrape.title
-      model.domain = uri.host
-    end
+    webpage.update title: scrape.title
+    webpage.page = scrape.body
   end
 end

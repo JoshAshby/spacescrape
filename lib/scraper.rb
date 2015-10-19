@@ -31,24 +31,16 @@ class Scraper
       end
     end
 
-    save_cache raw_page.body
-
     raw_page
   rescue Mechanize::UnsupportedSchemeError, Mechanize::ResponseCodeError => e
     $logger.warn e
-
-    Domain.update_or_create domain: url do |model|
-      model.reason = [ model.reason, e.message ].join
-      model.blacklist = true
-    end
 
     return :abort
   rescue Mechanize::RobotsDisallowedError => e
     $logger.warn e
 
-    Domain.update_or_create domain: host do |model|
+    Blacklist.update_or_create pattern: "%#{URI(@url).host}%" do |model|
       model.reason = [ model.reason, "robots.txt prevents bots" ].join
-      model.blacklist = true
     end
 
     return :abort
@@ -98,37 +90,6 @@ class Scraper
     count = Webpage.count
     $logger.debug "Count is #{ count } with max #{ max } while checking #{ url }"
     return count >= max
-  end
-
-  def sha_hash
-    @sha_hash ||= Digest::SHA256.new << url
-    @sha_hash.to_s
-  end
-
-  def cache_key
-    @cache_key ||= [ sha_hash[0..1], sha_hash[2..3], sha_hash[4..-1] ]
-  end
-
-  def cache_directory
-    unless @dirname
-      @dirname = File.join 'crawler_cache', *cache_key[0..1]
-      FileUtils.mkdir_p @dirname
-    end
-
-    @dirname
-  end
-
-  def cache_path
-    @filepath ||= File.join cache_directory, cache_key[2]
-  end
-
-  def save_cache data
-    File.write cache_path, data
-  end
-
-  def cached?
-    return false unless sha_hash
-    @cached ||= File.exist? cache_path
   end
 
   def blacklisted?

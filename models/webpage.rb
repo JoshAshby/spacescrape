@@ -1,19 +1,18 @@
 class Webpage < Sequel::Model
-  def analyzer
-    @analyzer ||= Analyzer.new @page
+  def before_save
+    return false if super == false
+
+    self.url = self.url.split('#', 2).first
+    self.sha_hash = Digest::SHA256.new << self.url
   end
 
-  def analyze
-    analyzer.analyze
-  end
-
-  def page= v
+  def cache= v
     File.write cache_path, v
-    @page = v
+    @cache = v
   end
 
-  def page
-     @page ||= File.read cache_path if cached?
+  def cache
+     @cache ||= File.read cache_path if cached?
   end
 
   def cached?

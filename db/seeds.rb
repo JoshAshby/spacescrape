@@ -7,7 +7,9 @@ settings:
 blacklist:
   - %xxx%
   - %adult%
-  - %drive.google.com%
+  - %porn%
+  - %drugs%
+  - %.google.com%
   - %facebook.com%
 
 seed_urls:
@@ -53,7 +55,7 @@ def load_seeds
   starter['keywords'].each do |keyword|
     tupil = keyword.split('^', 2)
 
-    Keyword.find_or_create keyword: tupil[0] do |model|
+    Keyword.update_or_create keyword: tupil[0] do |model|
       weight = tupil[1].to_i
       weight = 1 if weight == 0
       model.weight = weight
@@ -61,8 +63,14 @@ def load_seeds
   end
 
   starter['settings'].each do |key, val|
-    Setting.find_or_create name: key do |model|
+    Setting.update_or_create name: key do |model|
       model.value = val
+    end
+  end
+
+  starter['blacklist'].each do |pattern|
+    Blacklist.update_or_create pattern: pattern do |model|
+      model.reason = "Don't want to wander here"
     end
   end
 end

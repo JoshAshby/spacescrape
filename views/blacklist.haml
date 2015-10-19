@@ -1,0 +1,19 @@
+%form{ method: :post }
+  %input{ type: :text, name: :pattern, placeholder: "SQL Pattern to blacklist" }
+  %textarea{ name: :reason, placeholder: "Reason for blacklist" }
+  %button{ type: :submit } Add
+
+%table
+  %thead
+    %tr
+      %th ID
+      %th Pattern
+      %th Reason
+      %th Created At
+  %tbody
+    - @blacklist.each do |item|
+      %tr
+        %td= item.id
+        %td= item.pattern
+        %td= item.reason
+        %td= item.created_at.iso8601 6

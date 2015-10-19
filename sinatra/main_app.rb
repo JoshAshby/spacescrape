@@ -3,20 +3,33 @@ class MainApp < Sinatra::Base
   set :views, -> { File.join $current_dir, 'views' }
 
   get '/' do
-    @scrapes = Webpage.all
+    @webpages = Webpage.all
 
     haml :index
   end
 
-  get '/domains' do
-    @domains = Domain.all
-
-    haml :domains
-  end
-
   post '/' do
-    ScraperWorker.perform_async params['url'] if params['url']
+    if params['url']
+      webpage = Webpage.find_or_create url: params['url']
+      ScraperWorker.perform_async webpage.id
+    end
 
     redirect to('/')
+  end
+
+  get '/blacklist' do
+    @blacklist = Blacklist.all
+
+    haml :blacklist
+  end
+
+  post '/blacklist' do
+    if params['pattern']
+      Blacklist.update_or_create pattern: params['pattern'] do |model|
+        model.reason = params['reason']
+      end
+    end
+
+    redirect to('/blacklist')
   end
 end

@@ -1,7 +1,6 @@
 %form{ method: :post }
   %input{ type: :text, name: :url, placeholder: "URL to scrape" }
-  %button{ type: :submit }
-    Scrape!
+  %button{ type: :submit } Queue!
 
 %br
 %table
@@ -9,16 +8,14 @@
     %tr
       %th ID
       %th Title
-      %th Domain
       %th Url
       %th Created At
 
   %tbody
-    - @scrapes.each do |scrape|
+    - @webpages.each do |webpage|
       %tr
-        %td= scrape.id
-        %td= scrape.title
-        %td= scrape.domain
+        %td= webpage.id
+        %td= webpage.title
         %td
-          %a{ href: scrape.url }= scrape.url
-        %td= scrape.created_at.iso8601 6
+          %a{ href: webpage.url }= webpage.url
+        %td= webpage.created_at.iso8601 6
