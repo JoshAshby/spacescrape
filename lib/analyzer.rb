@@ -4,8 +4,9 @@ require 'loofah'
 class Analyzer
   attr_accessor :document
 
-  def initialize(document:)
-    @document = document
+  def call bus, env
+    @document = env
+    bus.publish to: 'doc:analyzed', data: analyze!
   end
 
   def word_count

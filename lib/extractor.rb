@@ -4,8 +4,9 @@ require 'loofah'
 class Extractor
   attr_accessor :html, :document
 
-  def initialize(html:)
-    @html = html
+  def call bus, env
+    @html = env
+    bus.publish to: 'doc:extracted', data: extract!
   end
 
   def extract!

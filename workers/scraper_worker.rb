@@ -27,52 +27,53 @@ class ScraperWorker
     jitter = SecureRandom.random_number jitter_threshold
     interval = timeout + jitter
 
-    $logger.debug "Requeueing #{ @mid } for #{ interval }"
+    $logger.debug "Requeueing #{ @id } for #{ interval }s from now"
 
-    ScraperWorker.perform_in interval, @mid
-  end
-
-  def scrape
-    $logger.debug "Planning on scrapping #{ @id }"
-
-    scraper = Scraper.new url: @webpage.url
-    scrape = scraper.scrape!
-
-    $logger.debug "Scraped #{ @id } with result: #{ scrape.kind_of?(Symbol) ? scrape : 'document' }"
-
-    return cancel!  if scrape == :abort
-    return requeue! if scrape == :retry
-
-    $logger.debug "Updating #{ @id } with scraped info"
-
-    @webpage.update title: scrape.title
-    @webpage.cache = scrape.body
+    ScraperWorker.perform_in interval, @id
   end
 
   def perform id
     @id, @webpage = id, Webpage.find(id: id)
     return cancel! unless @webpage
 
-    scrape unless @webpage.cached?
+    $logger.debug "Processing #{ @id } through pipeline..."
 
-    $logger.debug "Extracting and analyzing #{ @id }"
+    pipeline = PubsubPipeline.new do |pubsub|
+      pubsub.subscribe to: 'doc:fetch',     with: Fetcher
+      pubsub.subscribe to: 'doc:fetched',   with: Parser
+      pubsub.subscribe to: 'doc:parsed',    with: Extractor
+      pubsub.subscribe to: 'doc:extracted', with: Analyzer
 
-    extractor = Extractor.new(html: @webpage.cache)
-    extract   = extractor.extract!
-    analyzer  = Analyzer.new(document: extract)
-    analyze   = analyzer.analyze!
+      pubsub.subscribe to: 'doc:analyzed' do |bus, res|
+        $logger.debug "Finished #{ @id } in job #{ jid } with: #{ res }"
+      end
 
-    $logger.ap analyze
+      pubsub.subscribe to: 'job:links' do |bus, links|
+        $logger.debug "Parsing links for #{ @id }"
 
-    $logger.debug "Queueing links for #{ @id }"
+        links.each do |link|
+          link_webpage = Webpage.find_or_new url: link
+          next unless link_webpage.new?
 
-    extractor.links.each do |link|
-      link_webpage = Webpage.find_or_new url: link
-      next unless link_webpage.new?
+          link_webpage.save
+          self.class.perform_async link_webpage.id
+        end
+      end
 
-      link_webpage.save
-      self.class.perform_async link_webpage.id
+      pubsub.subscribe to: 'job:cancel' do |bus, env|
+        $logger.debug "Canceling job #{ jid } for #{ @id }"
+        bus.stop!
+        cancel!
+      end
+
+      pubsub.subscribe to: 'job:requeue' do |bus, env|
+        $logger.debug "Requeueing job #{ jid } for #{ @id }"
+        bus.stop!
+        requeue!
+      end
     end
+
+    pipeline.publish to: 'doc:fetch', data: @webpage
 
     $logger.debug "All done with #{ @id }"
   end
