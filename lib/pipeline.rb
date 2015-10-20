@@ -1,36 +1,69 @@
 class Pipeline
-  def initialize(model:)
+  def initialize
+    @stack = []
+    yield self
   end
 
-  protected
-
-  def timeout
-    @timeout ||= Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
+  def process env={}
+    @stack.inject(-> (env) { env }) { |app, comp| comp.call app }.call env
   end
 
-  def in_timeout?
-    $logger.debug "Checking timeout for #{ host }"
-    key = Redis.current.get Redis::Helpers.key(host, :nice)
-    return true if key
-  end
-
-  def go_to_timeout!
-    $logger.debug "Going into timeout for domain #{ host }"
-    Redis.current.setex Redis::Helpers.key(host, :nice), timeout, Time.now.utc.iso8601
-  end
-
-  def maxed_out?
-    return false
-    max = Setting.find{ name =~ 'max_scrapes' }.value.to_i
-    count = Webpage.count
-    $logger.debug "Count is #{ count } with max #{ max } while checking #{ url }"
-    return count >= max
-  end
-
-  def blacklisted?
-    $logger.debug "Checking blacklist for #{ url }"
-    return Blacklist.where do
-      like(lower('google'), pattern) |  like(lower('wikipedia'), pattern)
-    end.any?
+  def use klass, *args, &block
+    @stack.unshift -> (app) { klass.new app, *args, &block }
   end
 end
+
+class Fetcher
+  def initialize app
+    @app = app
+  end
+
+  def call env
+    puts "Fetcher before hit, #{ env }"
+    @app.call env
+    puts "Fetcher after hit, #{ env }"
+  end
+end
+
+class Parser
+  def initialize app
+    @app = app
+  end
+
+  def call env
+    puts "Parser before hit, #{ env }"
+    @app.call env
+    puts "Parser after hit, #{ env }"
+  end
+end
+
+class Extractor
+  def initialize app
+    @app = app
+  end
+
+  def call env
+    puts "Extractor before hit, #{ env }"
+    @app.call env
+    puts "Extractor after hit, #{ env }"
+  end
+end
+
+class Analyzer
+  def initialize app
+    @app = app
+  end
+
+  def call env
+    puts "Analyzer before hit, #{ env }"
+    @app.call env
+    puts "Analyzer after hit, #{ env }"
+  end
+end
+
+Pipeline.new do |pipeline|
+  pipeline.use Fetcher
+  pipeline.use Parser
+  pipeline.use Extractor
+  pipeline.use Analyzer
+end.process url: 'google.com'
