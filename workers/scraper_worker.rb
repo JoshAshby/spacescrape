@@ -35,10 +35,48 @@ class ScraperWorker
     $logger.debug "Processing #{ @id } through pipeline..."
 
     pipeline = PubsubPipeline.new do |pubsub|
+      pubsub.subscribe to: 'doc:model' do |bus, model|
+        return unless model.cached?
+
+        bus.publish to: 'doc:cached', data: model.cache
+        bus.stop!
+      end
+
+      pubsub.subscribe to: 'doc:model' do |bus, model|
+        return unless Redis.current.get Redis::Helpers.key(model.uri.host, :nice)
+
+        bus.publish to: 'request:retry'
+        bus.stop!
+      end
+
+      pubsub.subscribe to: 'doc:model' do |bus, model|
+        return unless Webpage.count >= Setting.find{ name =~ 'max_scrapes' }.value.to_i
+
+        bus.publish to: 'request:cancel'
+        bus.stop!
+      end
+
+      pubsub.subscribe to: 'doc:model' do |bus, model|
+        return unless Blacklist.where do |a|
+          a.like(a.lower(@model.url), a.pattern) |  a.like(a.lower(@model.uri.host), a.pattern)
+        end.any?
+
+        bus.publish to: 'request:cancel'
+        bus.stop!
+      end
+
+      pubsub.subscribe to: 'doc:model' do |bus, model|
+        bus.publish to: 'doc:fetch', data: model.uri
+      end
+
       pubsub.subscribe to: 'doc:fetch',              with: Fetcher
       pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Parser
       pubsub.subscribe to: 'doc:parsed',             with: Extractor
       pubsub.subscribe to: 'doc:extracted',          with: Analyzer
+
+      pubsub.subscribe to: 'doc:fetched' do |bus, body|
+        @webpage.cache = body
+      end
 
       pubsub.subscribe to: 'doc:analyzed' do |bus, res|
         $logger.debug "Finished #{ @id } in job #{ jid } with: #{ res }"
@@ -56,20 +94,18 @@ class ScraperWorker
         end
       end
 
-      pubsub.subscribe to: 'request:cancel' do |bus, env|
+      pubsub.subscribe to: 'request:cancel' do |bus|
         $logger.debug "Canceling job #{ jid } for #{ @id }"
-        bus.stop!
         cancel!
       end
 
       pubsub.subscribe to: 'request:retry' do |bus, timeout|
         $logger.debug "Requeueing job #{ jid } for #{ @id }"
-        bus.stop!
         requeue! timeout
       end
     end
 
-    pipeline.publish to: 'doc:fetch', data: @webpage
+    pipeline.publish to: 'doc:model', data: @webpage
 
     $logger.debug "All done with #{ @id }"
   end

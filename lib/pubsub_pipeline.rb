@@ -5,6 +5,7 @@
 class PubsubPipeline
   def initialize
     @subscribers = {}
+    @stop = false
 
     yield self if block_given?
   end
@@ -18,25 +19,27 @@ class PubsubPipeline
   end
 
   def stop!
-    @stopped = true
+    @stop = true
   end
 
-  def start!
-    @stopped = false
+  def reset!
+    @stop = false
   end
 
+  # Publishes the given data to the bus under the given namespace
+  #
+  # Returns a list of all the subscribers who recieved the message
   def publish to:, data: nil
     data = yield if block_given?
 
     @subscribers.select{ |k, v| k.match to }
       .values.flatten
       .each do |sub|
-        return if @stopped
-        $logger.debug "Publishing #{ data } to #{ sub }"
+        return if @stop
+        $logger.debug "Publishing #{ to } to #{ sub }"
         sub = sub.new if sub.class == Class
         sub.call self, data
-        $logger.debug "Finished publishing to #{ sub }"
-        return if @stopped
+        return if @stop
       end
   end
 end
