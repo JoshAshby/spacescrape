@@ -26,12 +26,12 @@ module Scraper
         bus.stop!
       end
 
-      # pubsub.subscribe to: 'doc:prefetch' do |bus, model|
-      #   next unless Webpage.count >= Setting.find{ name =~ 'max_scrapes' }.value.to_i
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
+        next unless Webpage.count >= Setting.find{ name =~ 'max_scrapes' }.value.to_i
 
-      #   bus.publish to: 'request:cancel'
-      #   bus.stop!
-      # end
+        bus.publish to: 'request:cancel'
+        bus.stop!
+      end
 
       pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         next unless Blacklist.where do |a|
@@ -46,13 +46,14 @@ module Scraper
         bus.publish to: 'doc:fetch', data: { model: model }
       end
 
+      pubsub.subscribe to: 'doc:fetch',              with: Roboter
       pubsub.subscribe to: 'doc:fetch',              with: Fetcher
       pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Parser
       pubsub.subscribe to: 'doc:parsed',             with: Extractor
       pubsub.subscribe to: 'doc:extracted',          with: Analyzer
 
       pubsub.subscribe to: 'doc:parsed' do |bus, env|
-        $logger.debug "caching #{ env[:model] }"
+        SpaceScrape.logger.debug "caching #{ env[:model] }"
 
         env[:model].update title: env[:nokogiri].title
         env[:model].save

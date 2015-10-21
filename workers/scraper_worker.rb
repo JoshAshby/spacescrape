@@ -24,20 +24,22 @@ class ScraperWorker
     jitter = SecureRandom.random_number jitter_threshold
     interval = timeout + jitter
 
-    $logger.debug "Requeueing #{ @id } for #{ interval }s from now"
+    SpaceScrape.logger.debug "Requeueing #{ @id } for #{ interval }s from now"
 
     ScraperWorker.perform_in interval, @id
   end
 
   def perform id
-    return requeue! unless $lock_manager.lock "model:webpage:#{ id }", 2000
+    lock = SpaceScrape.lock_manager.lock "model:webpage:#{ id }", 2000
+    return requeue! unless lock
+
     @id, @webpage = id, Webpage.find(id: id)
     return cancel! unless @webpage
 
     pipeline = Scraper.pipeline
 
     pipeline.subscribe to: /^doc:(fetched|cached)$/ do |bus, env|
-      $lock_manager.unlock "model:webpage:#{ id }"
+      SpaceScrape.lock_manager.unlock lock
     end
 
     pipeline.subscribe to: 'request:links' do |bus, links|
@@ -51,19 +53,25 @@ class ScraperWorker
     end
 
     pipeline.subscribe to: 'request:cancel' do |bus|
-      $logger.debug "Canceling job #{ jid }"
+      SpaceScrape.logger.debug "Canceling job #{ jid }"
       cancel!
     end
 
     pipeline.subscribe to: 'request:retry' do |bus, timeout|
-      $logger.debug "Requeueing job #{ jid }"
+      SpaceScrape.logger.debug "Requeueing job #{ jid }"
       requeue! timeout
     end
 
-    $logger.debug "Processing #{ @id } through pipeline..."
+    SpaceScrape.logger.debug "Processing #{ @id } through pipeline..."
 
-    $logger.debug pipeline.publish(to: 'doc:prefetch', data: @webpage)
+    SpaceScrape.logger.debug pipeline.publish(to: 'doc:prefetch', data: @webpage)
 
-    $logger.debug "All done with #{ @id }"
+    SpaceScrape.logger.debug "All done with #{ @id }"
+
+  rescue Sequel::PoolTimeout, Sequel::DatabaseError => e
+    SpaceScrape.logger.warn "Encountered a problem with the database while working on the DB"
+    SpaceScrape.logger.warn e
+
+    requeue!
   end
 end

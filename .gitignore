@@ -39,5 +39,5 @@ node_modules/
 js-docs/
 public/assets/
 
-crawler_cache/
+cache/
 .gems/

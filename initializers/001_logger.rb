@@ -2,10 +2,19 @@ require 'logger'
 
 require_relative '../lib/multi_io'
 
-# setup our logger for everything...
-$logger = Logger.new MultiIO.new(
-  File.open(File.join($current_dir, 'logs', 'server.log'), 'a'),
-  $stdout
-)
+module SpaceScrape
+  module_function
+  def logger
+    @@logger = Logger.new MultiIO.new(
+      File.open(SpaceScrape.root.join('logs', 'server.log'), 'a'),
+      STDOUT
+    )
+  end
+end
 
-$logger.level = Logger::DEBUG
+# setup our logger for everything...
+SpaceScrape.logger.level = Logger::DEBUG
+
+at_exit do
+  SpaceScrape.logger.close
+end

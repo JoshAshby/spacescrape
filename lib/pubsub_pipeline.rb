@@ -36,7 +36,7 @@ class PubsubPipeline
       .values.flatten
       .each do |sub|
         break if @stop
-        $logger.debug "Publishing #{ to } to #{ sub }"
+        SpaceScrape.logger.debug "Publishing #{ to } to #{ sub }"
         sub = sub.new if sub.class == Class
         sub.call self, data
         break if @stop
