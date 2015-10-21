@@ -3,8 +3,8 @@ require 'loofah'
 
 class Extractor
   def call bus, env
-    @html = env
-    bus.publish to: 'doc:extracted', data: extract!
+    @html = env[:body]
+    bus.publish to: 'doc:extracted', data: env.merge({ content: extract! })
   end
 
   def extract!

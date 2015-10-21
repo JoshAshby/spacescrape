@@ -35,11 +35,11 @@ class PubsubPipeline
     @subscribers.select{ |k, v| k.match to }
       .values.flatten
       .each do |sub|
-        return if @stop
+        break if @stop
         $logger.debug "Publishing #{ to } to #{ sub }"
         sub = sub.new if sub.class == Class
         sub.call self, data
-        return if @stop
+        break if @stop
       end
   end
 end

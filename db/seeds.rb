@@ -43,38 +43,41 @@ seed_urls:
   - https://en.wikipedia.org/wiki/NASA
 YML
 
-# Make sure that our database has the basic items that we need. Basically a
-# seed file...
-def load_seeds
-  starter = YAML.load DATA
+module Seeds
+  module_function
+  # Make sure that our database has the basic items that we need. Basically a
+  # seed file...
+  def load_seeds
+    starter = YAML.load DATA
 
-  # where should we start off looking for things?
-  # seed_urls = starter['seed_urls'].map &:freeze
+    # where should we start off looking for things?
+    # seed_urls = starter['seed_urls'].map &:freeze
 
-  # What qualifies the page as something we should look for?
-  starter['keywords'].each do |keyword|
-    tupil = keyword.split('^', 2)
+    # What qualifies the page as something we should look for?
+    starter['keywords'].each do |keyword|
+      tupil = keyword.split('^', 2)
 
-    Keyword.update_or_create keyword: tupil[0] do |model|
-      weight = tupil[1].to_i
-      weight = 1 if weight == 0
-      model.weight = weight
+      Keyword.update_or_create keyword: tupil[0] do |model|
+        weight = tupil[1].to_i
+        weight = 1 if weight == 0
+        model.weight = weight
+      end
     end
-  end
 
-  # Couple of default settings, these should be updatable from the web
-  # eventually to allow for quick fine tuning
-  starter['settings'].each do |key, val|
-    Setting.update_or_create name: key do |model|
-      model.value = val
+    # Couple of default settings, these should be updatable from the web
+    # eventually to allow for quick fine tuning
+    starter['settings'].each do |key, val|
+      Setting.update_or_create name: key do |model|
+        model.value = val
+      end
     end
-  end
 
-  # Finally, ensure we don't do wandering off into somewhere we don't want to
-  # be
-  starter['blacklist'].each do |pattern|
-    Blacklist.update_or_create pattern: pattern do |model|
-      model.reason = "Don't want to wander here"
+    # Finally, ensure we don't do wandering off into somewhere we don't want to
+    # be
+    starter['blacklist'].each do |pattern|
+      Blacklist.update_or_create pattern: pattern do |model|
+        model.reason = "Don't want to wander here"
+      end
     end
   end
 end

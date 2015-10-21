@@ -19,6 +19,8 @@ gem 'sequel'
 
 gem 'redis'
 gem 'redis-namespace'
+gem 'connection_pool'
+gem 'redlock'
 
 gem 'sidekiq'
 

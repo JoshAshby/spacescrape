@@ -1,3 +1,6 @@
+require 'sinatra/base'
+require 'haml'
+
 # Finally the sinatra app to interface with this all...
 class MainApp < Sinatra::Base
   set :views, -> { File.join $current_dir, 'views' }
@@ -9,10 +12,7 @@ class MainApp < Sinatra::Base
   end
 
   post '/' do
-    if params['url']
-      webpage = Webpage.find_or_create url: params['url']
-      ScraperWorker.perform_async webpage.id
-    end
+    Scraper.pipeline.publish to: 'doc:async', data: params['url'] if params['url']
 
     redirect to('/')
   end

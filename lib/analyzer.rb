@@ -3,8 +3,8 @@ require 'loofah'
 
 class Analyzer
   def call bus, env
-    @document = env
-    bus.publish to: 'doc:analyzed', data: analyze!
+    @document = env[:content]
+    bus.publish to: 'doc:analyzed', data: env.merge({ analysis: analyze! })
   end
 
   def word_count

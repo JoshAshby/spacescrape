@@ -22,34 +22,34 @@ class Fetcher
     end
   end
 
-  def call bus, uri
-    @uri = uri
+  def call bus, env
+    @model = env[:model]
 
     unless allowed?
-      $logger.debug "#{ @uri } isn't allowed"
+      $logger.debug "#{ @model.uri } isn't allowed"
       bus.publish to: 'request:cancel'
       return
     end
 
     go_to_timeout!
 
-    $logger.debug "Fetching url for #{ @uri }"
+    $logger.debug "Fetching url for #{ @model.uri }"
 
     # TODO: handle errors
-    res = @conn.get @uri.to_s
+    res = @conn.get @model.uri.to_s
 
-    bus.publish to: 'doc:fetched', data: res.body
+    bus.publish to: 'doc:fetched', data: env.merge({ body: res.body })
   end
 
   protected
 
   def get_robots
-    res = @conn.get @uri + '/robots.txt'
+    res = @conn.get @model.uri + '/robots.txt'
     Robotstxt.parse res.body, @user_agent
   end
 
   def allowed?
-    get_robots.allowed? @uri.to_s
+    get_robots.allowed? @model.uri.to_s
   end
 
   def timeout
@@ -57,7 +57,7 @@ class Fetcher
   end
 
   def go_to_timeout!
-    $logger.debug "Going into timeout for domain #{ @uri.host }"
-    Redis.current.setex Redis::Helpers.key(@uri.host, :nice), timeout, Time.now.utc.iso8601
+    $logger.debug "Going into a #{ timeout }s long timeout for domain #{ @model.uri.host }"
+    Redis.current.setex Redis::Helpers.key(@model.uri.host, :nice), timeout, Time.now.utc.iso8601
   end
 end

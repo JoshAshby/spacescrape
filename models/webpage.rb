@@ -15,7 +15,9 @@ class Webpage < Sequel::Model
   end
 
   def cache= v
-    File.write cache_path, v
+    $logger.debug "Writing cache for #{ self.url }"
+    length = File.write cache_path, v
+    $logger.debug "Cached #{ length } bytes"
     @cache = v
   end
 
