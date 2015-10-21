@@ -15,11 +15,7 @@ class ScraperWorker
     @cancel = true
   end
 
-  def timeout
-    @timeout ||= Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
-  end
-
-  def requeue!
+  def requeue! timeout
     cancel!
 
     jitter_threshold = Setting.find{ name =~ 'play_nice_jitter_threshold' }.value.to_i
@@ -39,16 +35,16 @@ class ScraperWorker
     $logger.debug "Processing #{ @id } through pipeline..."
 
     pipeline = PubsubPipeline.new do |pubsub|
-      pubsub.subscribe to: 'doc:fetch',     with: Fetcher
-      pubsub.subscribe to: 'doc:fetched',   with: Parser
-      pubsub.subscribe to: 'doc:parsed',    with: Extractor
-      pubsub.subscribe to: 'doc:extracted', with: Analyzer
+      pubsub.subscribe to: 'doc:fetch',              with: Fetcher
+      pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Parser
+      pubsub.subscribe to: 'doc:parsed',             with: Extractor
+      pubsub.subscribe to: 'doc:extracted',          with: Analyzer
 
       pubsub.subscribe to: 'doc:analyzed' do |bus, res|
         $logger.debug "Finished #{ @id } in job #{ jid } with: #{ res }"
       end
 
-      pubsub.subscribe to: 'job:links' do |bus, links|
+      pubsub.subscribe to: 'request:links' do |bus, links|
         $logger.debug "Parsing links for #{ @id }"
 
         links.each do |link|
@@ -60,16 +56,16 @@ class ScraperWorker
         end
       end
 
-      pubsub.subscribe to: 'job:cancel' do |bus, env|
+      pubsub.subscribe to: 'request:cancel' do |bus, env|
         $logger.debug "Canceling job #{ jid } for #{ @id }"
         bus.stop!
         cancel!
       end
 
-      pubsub.subscribe to: 'job:requeue' do |bus, env|
+      pubsub.subscribe to: 'request:retry' do |bus, timeout|
         $logger.debug "Requeueing job #{ jid } for #{ @id }"
         bus.stop!
-        requeue!
+        requeue! timeout
       end
     end
 

@@ -1,4 +1,9 @@
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
+
 require 'faraday'
+require 'faraday_middleware'
+
 require 'robotstxt'
 
 class Fetcher
@@ -6,48 +11,55 @@ class Fetcher
 
   def initialize
     @user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:40.0) Gecko/20100101 Firefox/40.1'
-    @con = Faraday.new headers: { 'Accept-Language' => 'en', 'User-Agent' => @user_agent } do |faraday|
-      builder.request   :html
+    @conn = Faraday.new headers: {
+      'Accept-Language' => 'en',
+      'User-Agent' => @user_agent,
+      'Accept' => 'text/html; charset=utf-8'
+    } do |builder|
+      builder.use Faraday::Response::Logger,          $logger
+      builder.use FaradayMiddleware::FollowRedirects, limit: 3
 
-      builder.response  :html, content_type: /\b(html)$/
-
-      builder.adapter   :typhoeus
+      builder.adapter :typhoeus
     end
   end
 
   def call bus, env
     @webpage = env
-    bus.publish to: 'doc:fetched', data: fetch!
-  end
 
-  def fetch!
-    return cache if cached?
-    remote
+    $logger.debug "Fetching url for #{ @webpage }"
+
+    bus.publish to: 'doc:cached', data: @webpage.cache if @webpage.cached?
+
+    if in_timeout?
+      bus.stop!
+      bus.publish to: 'request:retry', data: timeout
+      return
+    end
+
+    if blacklisted? || maxed_out? || !allowed?
+      bus.stop!
+      bus.publish to: 'request:cancel'
+      return
+    end
+
+    go_to_timeout!
+
+    # TODO: handle errors
+    res = @conn.get @webpage.url
+
+    @webpage.cache = res.body
+    bus.publish to: 'doc:fetched', data: res.body
   end
 
   protected
 
-  def cached?
-    @webpage.cached?
-  end
-
-  def cache
-    @webpage.cache
-  end
-
-  def remote
-    # TODO
-    @con.get @webpage.url
-    ""
-  end
-
-  def robots_allowed?
-    get_robots.allowed? @webpage.url
-  end
-
   def get_robots
-    res = Faraday.get URI(@webpage.host).join('/robots.txt')
+    res = @conn.get @webpage.uri + '/robots.txt'
     Robotstxt.parse res.body, @user_agent
+  end
+
+  def allowed?
+    get_robots.allowed? @webpage.url
   end
 
   def timeout
@@ -55,14 +67,14 @@ class Fetcher
   end
 
   def in_timeout?
-    $logger.debug "Checking timeout for #{ @webpage.host }"
+    $logger.debug "Checking timeout for #{ @webpage.uri.host }"
     key = Redis.current.get Redis::Helpers.key(@webpage.host, :nice)
     return true if key
   end
 
   def go_to_timeout!
-    $logger.debug "Going into timeout for domain #{ @webpage.host }"
-    Redis.current.setex Redis::Helpers.key(@webpage.host, :nice), timeout, Time.now.utc.iso8601
+    $logger.debug "Going into timeout for domain #{ @webpage.uri.host }"
+    Redis.current.setex Redis::Helpers.key(@webpage.uri.host, :nice), timeout, Time.now.utc.iso8601
   end
 
   def maxed_out?
@@ -74,8 +86,8 @@ class Fetcher
 
   def blacklisted?
     $logger.debug "Checking blacklist for #{ @webpage.url }"
-    return Blacklist.where do
-      like(lower(@webpage.url), pattern) |  like(lower(@webpage.url), pattern)
+    return Blacklist.where do |a|
+      a.like(a.lower(@webpage.url), a.pattern) |  a.like(a.lower(@webpage.uri.host), a.pattern)
     end.any?
   end
 end

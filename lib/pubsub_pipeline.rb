@@ -1,3 +1,7 @@
+# Builds out a Publish/Subscriber system. Subscriptions are to a pattern or a
+# specific broadcast, and can have as many subscribers. Subscriptions should
+# have a #match(a) method while subscribers themselves should respond to
+# #call(bus, data)
 class PubsubPipeline
   def initialize
     @subscribers = {}
@@ -28,8 +32,10 @@ class PubsubPipeline
       .values.flatten
       .each do |sub|
         return if @stopped
+        $logger.debug "Publishing #{ data } to #{ sub }"
         sub = sub.new if sub.class == Class
         sub.call self, data
+        $logger.debug "Finished publishing to #{ sub }"
         return if @stopped
       end
   end

@@ -1,3 +1,14 @@
+# Gives a rack middleware style stack builder
+# @example
+#   class Fetcher
+#     def initialize app
+#       @app = app
+#     end
+#
+#     def call env
+#       @app.call env
+#     end
+#   end
 class StackPipeline
   def initialize
     @stack = []
