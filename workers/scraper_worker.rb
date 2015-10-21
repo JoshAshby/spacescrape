@@ -35,28 +35,28 @@ class ScraperWorker
     $logger.debug "Processing #{ @id } through pipeline..."
 
     pipeline = PubsubPipeline.new do |pubsub|
-      pubsub.subscribe to: 'doc:model' do |bus, model|
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         return unless model.cached?
 
         bus.publish to: 'doc:cached', data: model.cache
         bus.stop!
       end
 
-      pubsub.subscribe to: 'doc:model' do |bus, model|
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         return unless Redis.current.get Redis::Helpers.key(model.uri.host, :nice)
 
         bus.publish to: 'request:retry'
         bus.stop!
       end
 
-      pubsub.subscribe to: 'doc:model' do |bus, model|
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         return unless Webpage.count >= Setting.find{ name =~ 'max_scrapes' }.value.to_i
 
         bus.publish to: 'request:cancel'
         bus.stop!
       end
 
-      pubsub.subscribe to: 'doc:model' do |bus, model|
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         return unless Blacklist.where do |a|
           a.like(a.lower(@model.url), a.pattern) |  a.like(a.lower(@model.uri.host), a.pattern)
         end.any?
@@ -65,7 +65,7 @@ class ScraperWorker
         bus.stop!
       end
 
-      pubsub.subscribe to: 'doc:model' do |bus, model|
+      pubsub.subscribe to: 'doc:prefetch' do |bus, model|
         bus.publish to: 'doc:fetch', data: model.uri
       end
 
@@ -105,7 +105,7 @@ class ScraperWorker
       end
     end
 
-    pipeline.publish to: 'doc:model', data: @webpage
+    pipeline.publish to: 'doc:prefetch', data: @webpage
 
     $logger.debug "All done with #{ @id }"
   end
