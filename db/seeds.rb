@@ -11,6 +11,7 @@ blacklist:
   - '%drugs%'
   - '%.google.com%'
   - '%facebook.com%'
+  - '%wikipedia.org/w/index.php%'
 
 keywords:
   - nasa^10

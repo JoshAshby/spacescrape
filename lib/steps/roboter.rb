@@ -15,7 +15,7 @@ class Roboter
       'User-Agent' => @user_agent,
       'Accept' => 'text/plain; charset=utf-8'
     } do |builder|
-      builder.use Faraday::Response::Logger, SpaceScrape.logger
+      # builder.use Faraday::Response::Logger, SpaceScrape.logger
 
       builder.adapter :typhoeus
     end
@@ -32,25 +32,23 @@ class Roboter
 
   protected
 
-  def get_robots
+  def allowed?
     cache_name = "parser:#{ @model.uri.host }"
 
     if SpaceScrape.cache.cached? cache_name
       raw = SpaceScrape.cache.get cache_name
       parser = Marshal.load raw
-      return parser
+    else
+      res = @conn.get @model.uri + '/robots.txt'
+      parser = Robotstxt.parse res.body, @user_agent
+
+      raw = Marshal.dump parser
+      SpaceScrape.cache.set cache_name, raw
     end
 
-    res = @conn.get @model.uri + '/robots.txt'
-    parser = Robotstxt.parse res.body, @user_agent
-
-    raw = Marshal.dump parser
-    SpaceScrape.cache.set cache_name, raw
-
-    parser
-  end
-
-  def allowed?
-    get_robots.allowed? @model.uri.to_s
+    parser.allowed? @model.url
+  rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError
+    SpaceScrape.logger.error "Problem in fetcher for #{ @model.url }"
+    false
   end
 end

@@ -13,7 +13,7 @@ class Fetcher
       'User-Agent' => @user_agent,
       'Accept' => 'text/html; charset=utf-8'
     } do |builder|
-      builder.use Faraday::Response::Logger,          SpaceScrape.logger
+      # builder.use Faraday::Response::Logger,          SpaceScrape.logger
       builder.use FaradayMiddleware::FollowRedirects, limit: 3
 
       builder.adapter :typhoeus
@@ -31,6 +31,8 @@ class Fetcher
     res = @conn.get @model.uri.to_s
 
     bus.publish to: 'doc:fetched', data: env.merge({ body: res.body })
+  rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError
+    SpaceScrape.logger.error "Problem in fetcher for #{ @model.url }"
   end
 
   protected

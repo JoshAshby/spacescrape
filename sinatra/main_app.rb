@@ -12,9 +12,21 @@ class MainApp < Sinatra::Base
   end
 
   post '/' do
-    Scraper.pipeline.publish to: 'doc:async', data: params['url'] if params['url']
+    Scraper.process_async params['url'] if params['url']
 
     redirect to('/')
+  end
+
+  get '/timeout' do
+    @timeouts = Redis.current.keys('*:nice').map do |key|
+      {
+        domain: key.gsub(':nice', ''),
+        seconds_left: Redis.current.ttl(key),
+        set_at: Redis.current.get(key)
+      }
+    end.select{ |p| p[:seconds_left] >= 0 }
+
+    haml :timeout
   end
 
   get '/blacklist' do

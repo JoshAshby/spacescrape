@@ -1,0 +1,14 @@
+%br
+%table
+  %thead
+    %tr
+      %th Domain
+      %th Seconds Left
+      %th Set At
+
+  %tbody
+    - @timeouts.each do |timeout|
+      %tr
+        %td= timeout[:domain]
+        %td= timeout[:seconds_left]
+        %td= timeout[:set_at]

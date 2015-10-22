@@ -1,4 +1,10 @@
 class Webpage < Sequel::Model
+  def validate
+    super
+
+    errors.add(:url, 'cannot be empty') if !url || url.empty?
+  end
+
   def before_save
     return false if super == false
 
@@ -15,6 +21,10 @@ class Webpage < Sequel::Model
   end
 
   def cache= v
+    SpaceScrape.cache.set url, v
+  end
+
+  def set_cache v
     SpaceScrape.cache.set url, v
   end
 

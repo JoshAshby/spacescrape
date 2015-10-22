@@ -3,6 +3,8 @@
 # have a #match(a) method while subscribers themselves should respond to
 # #call(bus, data)
 class PubsubPipeline
+  attr_accessor :subscribers
+
   def initialize
     @subscribers = {}
     @stop = false
@@ -19,11 +21,8 @@ class PubsubPipeline
   end
 
   def stop!
+    SpaceScrape.logger.debug "Stopping pubsub!"
     @stop = true
-  end
-
-  def reset!
-    @stop = false
   end
 
   # Publishes the given data to the bus under the given namespace
@@ -32,14 +31,25 @@ class PubsubPipeline
   def publish to:, data: nil
     data = yield if block_given?
 
-    @subscribers.select{ |k, v| k.match to }
+    subs = @subscribers.select{ |k, v| k.match to }
       .values.flatten
       .each do |sub|
-        break if @stop
         SpaceScrape.logger.debug "Publishing #{ to } to #{ sub }"
+
+        break if @stop
         sub = sub.new if sub.class == Class
         sub.call self, data
         break if @stop
       end
+
+    SpaceScrape.logger.debug "Published #{ to } to #{ subs }"
+    SpaceScrape.logger.debug "Current state of subscribers:"
+    SpaceScrape.logger.ap @subscribers
+
+    SpaceScrape.logger.error "SUBSCRIBERS IS BLANK!" unless @subscribers
+    SpaceScrape.logger.error "SUBSCRIBERS IS EMPTY!" unless @subscribers.any?
+    SpaceScrape.logger.error "SUBSCRIBERS ISN'T A HASH!" unless @subscribers.kind_of? Hash
+
+    subs
   end
 end

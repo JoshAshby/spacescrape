@@ -15,7 +15,7 @@ class ScraperWorker
     @cancel = true
   end
 
-  def requeue! timeout
+  def requeue! timeout=nil
     timeout = 60 unless timeout
     cancel!
 
@@ -35,6 +35,7 @@ class ScraperWorker
 
     @id, @webpage = id, Webpage.find(id: id)
     return cancel! unless @webpage
+    return cancel! if @webpage.cached?
 
     pipeline = Scraper.pipeline
 
@@ -42,15 +43,16 @@ class ScraperWorker
       SpaceScrape.lock_manager.unlock lock
     end
 
-    pipeline.subscribe to: 'request:links' do |bus, links|
-      links.shuffle[0..1].each do |link|
-        link_webpage = Webpage.find_or_new url: link
-        next unless link_webpage.new?
+    # pipeline.subscribe to: 'request:links' do |bus, links|
+    #   links.shuffle.each do |link|
+    #     link_webpage = Webpage.find_or_new url: link
+    #     next unless link_webpage.new?
+    #     next unless link_webpage.valid?
 
-        link_webpage.save
-        self.class.perform_async link_webpage.id
-      end
-    end
+    #     link_webpage.save
+    #     self.class.perform_async link_webpage.id
+    #   end
+    # end
 
     pipeline.subscribe to: 'request:cancel' do |bus|
       SpaceScrape.logger.debug "Canceling job #{ jid }"
@@ -64,7 +66,7 @@ class ScraperWorker
 
     SpaceScrape.logger.debug "Processing #{ @id } through pipeline..."
 
-    SpaceScrape.logger.debug pipeline.publish(to: 'doc:prefetch', data: @webpage)
+    SpaceScrape.logger.debug pipeline.publish(to: 'doc:fetch', data: { model: @webpage })
 
     SpaceScrape.logger.debug "All done with #{ @id }"
 
