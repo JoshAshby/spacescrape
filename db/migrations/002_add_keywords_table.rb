@@ -1,6 +1,6 @@
 Sequel.migration do
   change do
-    create_table? :keywords do
+    create_table :keywords do
       primary_key :id
 
       text :keyword
@@ -8,8 +8,8 @@ Sequel.migration do
 
       integer :weight
 
-      datetime :created_at
-      datetime :updated_at
+      DateTime :created_at
+      DateTime :updated_at
     end
   end
 end

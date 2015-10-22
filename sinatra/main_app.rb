@@ -1,5 +1,6 @@
 require 'sinatra/base'
 require 'haml'
+require 'tilt/haml'
 
 # Finally the sinatra app to interface with this all...
 class MainApp < Sinatra::Base

@@ -14,7 +14,3 @@ end
 
 # setup our logger for everything...
 SpaceScrape.logger.level = Logger::WARN
-
-at_exit do
-  SpaceScrape.logger.close
-end

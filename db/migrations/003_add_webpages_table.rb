@@ -1,6 +1,6 @@
 Sequel.migration do
   change do
-    create_table? :webpages do
+    create_table :webpages do
       primary_key :id
 
       text :url
@@ -10,8 +10,8 @@ Sequel.migration do
 
       text :title
 
-      datetime :created_at
-      datetime :updated_at
+      DateTime :created_at
+      DateTime :updated_at
     end
   end
 end

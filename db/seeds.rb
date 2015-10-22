@@ -49,6 +49,10 @@ module Seeds
   # Make sure that our database has the basic items that we need. Basically a
   # seed file...
   def load_seeds
+    Blacklist.set_dataset :blacklists
+    Keyword.set_dataset :keywords
+    Setting.set_dataset :settings
+
     starter = YAML.load DATA
 
     # where should we start off looking for things?

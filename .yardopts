@@ -1,0 +1,1 @@
+lib/**/*.rb sinatra/**/*.rb workers/**/*.rb models/**/*.rb initializers/**/*.rb spacescrape.rb - README.md

@@ -1,6 +1,6 @@
 Sequel.migration do
   change do
-    create_table? :settings do
+    create_table :settings do
       primary_key :id
 
       text :name
@@ -8,8 +8,8 @@ Sequel.migration do
 
       text :value
 
-      datetime :created_at
-      datetime :updated_at
+      DateTime :created_at
+      DateTime :updated_at
     end
   end
 end

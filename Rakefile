@@ -1,13 +1,11 @@
 require 'rake/clean'
-
-require 'benchmark'
+require 'rake/testtask'
 
 CLEAN << 'db/app.sqlite3'
 CLEAN << 'cache/'
 
 task :environment do
   require_relative './spacescrape'
-  require_relative './db/seeds'
 end
 
 namespace :redis do
@@ -32,9 +30,22 @@ namespace :db do
   task seed: :environment do
     puts "Loading seed data"
 
+    require_relative './db/seeds'
     Seeds.load_seeds
   end
 
   desc "Migrate and seed"
   task reset: [ :environment, :migrate, :seed ]
+end
+
+Rake::TestTask.new do |t|
+  t.pattern = "test/**/*test.rb"
+end
+
+task default: :test
+
+desc 'Generates a coverage report'
+task :coverage do
+  ENV['COVERAGE'] = 'true'
+  Rake::Task['test'].execute
 end

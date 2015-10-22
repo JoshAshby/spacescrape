@@ -41,3 +41,5 @@ public/assets/
 
 cache/
 .gems/
+coverage/
+doc/

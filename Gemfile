@@ -1,10 +1,6 @@
 source 'https://rubygems.org'
 ruby '2.2.2'
 
-gem 'byebug'
-gem 'awesome_print'
-
-# gem 'mechanize', git: 'https://github.com/sparklemotion/mechanize.git'
 gem 'faraday'
 gem 'faraday_middleware'
 gem 'typhoeus'
@@ -14,7 +10,7 @@ gem 'nokogiri'
 gem 'loofah'
 gem 'ruby-readability'
 
-gem 'sqlite3'
+gem 'pg'
 gem 'sequel'
 
 gem 'redis'
@@ -26,3 +22,16 @@ gem 'sidekiq'
 
 gem 'sinatra'
 gem 'haml'
+
+group :doc do
+  gem 'yard'
+  gem 'byebug'
+  gem 'awesome_print'
+end
+
+group :test do
+  gem 'minitest'
+  gem 'minitest-reporters'
+  gem 'rack-test'
+  gem 'simplecov', require: false
+end

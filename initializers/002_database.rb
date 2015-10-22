@@ -1,8 +1,8 @@
-require 'sqlite3'
+require 'pg'
 require 'sequel'
 
 # Setup our SQL database for things
-DB = Sequel.connect 'sqlite://db/app.sqlite3', max_connections: 50
+DB = Sequel.connect 'postgres://localhost/spacescrape', user: 'polymer', loggers: [ Logger.new(SpaceScrape.root.join('logs', 'sql.log')) ]
 
 Sequel::Model.db = DB
 
