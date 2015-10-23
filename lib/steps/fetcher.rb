@@ -37,11 +37,15 @@ class Fetcher
 
   protected
 
-  def timeout
-    @timeout ||= Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
+  def get_timeout
+    out = Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
+    jitter = Setting.find{ name =~ 'play_nice_jitter_threshold' }.value.to_i
+
+    out + SecureRandom.random_number(jitter)
   end
 
   def go_to_timeout!
+    timeout = get_timeout
     SpaceScrape.logger.debug "Going into a #{ timeout }s long timeout for domain #{ @model.uri.host }"
     Redis.current.setex Redis::Helpers.key(@model.uri.host, :nice), timeout, Time.now.utc.iso8601
   end

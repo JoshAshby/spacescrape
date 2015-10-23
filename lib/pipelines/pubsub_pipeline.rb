@@ -25,6 +25,10 @@ class PubsubPipeline
     @stop = true
   end
 
+  def reset!
+    @stop = false
+  end
+
   # Publishes the given data to the bus under the given namespace
   #
   # Returns a list of all the subscribers who recieved the message
@@ -33,22 +37,23 @@ class PubsubPipeline
 
     subs = @subscribers.select{ |k, v| k.match to }
       .values.flatten
-      .each do |sub|
-        SpaceScrape.logger.debug "Publishing #{ to } to #{ sub }"
-
-        break if @stop
-        sub = sub.new if sub.class == Class
-        sub.call self, data
-        break if @stop
-      end
 
     SpaceScrape.logger.debug "Published #{ to } to #{ subs }"
-    SpaceScrape.logger.debug "Current state of subscribers:"
-    SpaceScrape.logger.ap @subscribers
 
-    SpaceScrape.logger.error "SUBSCRIBERS IS BLANK!" unless @subscribers
-    SpaceScrape.logger.error "SUBSCRIBERS IS EMPTY!" unless @subscribers.any?
-    SpaceScrape.logger.error "SUBSCRIBERS ISN'T A HASH!" unless @subscribers.kind_of? Hash
+    subs.each do |sub|
+      SpaceScrape.logger.debug "Publishing #{ to } to #{ sub }"
+
+      break if @stop
+      sub = sub.new if sub.class == Class
+      sub.call self, data
+      if @stop
+        SpaceScrape.logger.debug "Stopping pubsub at #{ to }"
+        break
+      end
+    end
+
+    # SpaceScrape.logger.debug "Current state of subscribers:"
+    # SpaceScrape.logger.ap @subscribers
 
     subs
   end

@@ -7,8 +7,9 @@
       %th Set At
 
   %tbody
-    - @timeouts.each do |timeout|
+    - @timeouts.sort_by{ |t| t[:seconds_left] }.each do |timeout|
       %tr
-        %td= timeout[:domain]
+        %td
+          %a{ href: "http://#{ timeout[:domain] }" }= timeout[:domain]
         %td= timeout[:seconds_left]
         %td= timeout[:set_at]

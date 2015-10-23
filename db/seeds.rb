@@ -5,13 +5,16 @@ settings:
   max_scrapes: 500
 
 blacklist:
-  - '%xxx%'
-  - '%adult%'
-  - '%porn%'
-  - '%drugs%'
-  - '%.google.com%'
-  - '%facebook.com%'
-  - '%wikipedia.org/w/index.php%'
+  - '(.*)xxx(.*)'
+  - '(.*)adult(.*)'
+  - '(.*)porn(.*)'
+  - '(.*)drugs(.*)'
+  - '(.*)google.com(.*)'
+  - '(.*)facebook.com(.*)'
+  - '(.*)instagram.com(.*)'
+  - '(.*)twitter.com(.*)'
+  - '(.*)tinyurl.com(.*)'
+  - '(.*)wikipedia.org/w/index.php(.*)'
 
 keywords:
   - nasa^10

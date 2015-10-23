@@ -1,18 +1,21 @@
 class Blacklister
   def call bus, env
     model = env[:model]
-    blacklisted = Blacklist.where do |a|
-      a.like(a.lower(model.url), a.pattern) |  a.like(a.lower(model.uri.host), a.pattern)
-    end.any?
+    blacklists = DB[:blacklists].select(:pattern).map do |a|
+      Regexp.new a[:pattern]
+    end
 
+    blacklisted = blacklists.any? do |p|
+      model.url =~ p || model.uri.host =~ p
+    end
 
-    if model.url.match 'wikipedia.org'
-      blacklisted = true unless model.url.match 'en.wikipedia.org'
+    if model.url.match 'wiki(.*).org'
+      blacklisted = true unless model.url.match 'en.wiki(.*).org'
     end
 
     return unless blacklisted
 
-    bus.publish to: 'request:cancel'
+    bus.publish to: 'request:cancel', data: env
     bus.stop!
   end
 end

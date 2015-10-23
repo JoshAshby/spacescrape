@@ -23,6 +23,10 @@ class Cache
     length
   end
 
+  def clear name
+    FileUtils.rm cache_path(name)
+  end
+
   def cached? name
     File.exist? cache_path(name)
   end

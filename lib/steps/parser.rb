@@ -3,20 +3,40 @@ require 'byebug'
 
 class Parser
   def call bus, env
-    html, model = env[:body], env[:model]
+    @env = env
+    @document = Nokogiri::HTML.parse @env[:body]
 
-    document = Nokogiri::HTML.parse html
+    unless check_language
+      return bus.stop!
+    end
 
-    hrefs = document.xpath('//a/@href')
+    links = parse_links
+
+    bus.publish to: 'request:links', data: links
+    bus.publish to: 'doc:parsed', data: @env.merge({ nokogiri: @document, links: links })
+  end
+
+  def parse_links
+    hrefs = @document.xpath('//a/@href')
     links = hrefs.map do |href|
       begin
-        (model.uri + href).to_s.split('#', 2).first
+        (@env[:model].uri + href).to_s.split('#', 2).first
       rescue URI::InvalidURIError, NoMethodError
         next
       end
     end.uniq.compact
 
-    bus.publish to: 'request:links', data: links
-    bus.publish to: 'doc:parsed',    data: env.merge({ nokogiri: document, links: links })
+    links
+  end
+
+  def check_language
+    lang_attr = @document.xpath '/html/@lang'
+
+    SpaceScrape.logger.debug "Language of #{ @env[:model].url } is #{ lang_attr }. #{  }"
+    SpaceScrape.logger.debug "Language matches en? #{ lang_attr.to_s =~ /en/ }" if lang_attr
+
+    return true if lang_attr && lang_attr.to_s =~ /en/
+
+    lang_attr =~ /^en/
   end
 end

@@ -32,6 +32,10 @@ class Webpage < Sequel::Model
     SpaceScrape.cache.get url
   end
 
+  def clear_cache!
+    SpaceScrape.cache.clear url
+  end
+
   def cached?
     return false unless sha_hash
     SpaceScrape.cache.cached? url

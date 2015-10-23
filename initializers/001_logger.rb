@@ -13,4 +13,4 @@ module SpaceScrape
 end
 
 # setup our logger for everything...
-SpaceScrape.logger.level = Logger::WARN
+SpaceScrape.logger.level = Logger::DEBUG

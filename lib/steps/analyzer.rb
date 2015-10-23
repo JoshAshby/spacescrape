@@ -3,7 +3,9 @@ require 'loofah'
 
 class Analyzer
   def call bus, env
+    @env = env
     @document = env[:content]
+
     bus.publish to: 'doc:analyzed', data: env.merge({ analysis: analyze! })
   end
 

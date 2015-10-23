@@ -24,10 +24,11 @@ class Roboter
   def call bus, env
     @model = env[:model]
 
-    return unless allowed?
+    return if allowed?
 
     SpaceScrape.logger.debug "#{ @model.uri } isn't allowed"
-    bus.publish to: 'request:cancel'
+    bus.publish to: 'request:cancel', data: env
+    bus.stop!
   end
 
   protected
@@ -47,7 +48,7 @@ class Roboter
     end
 
     parser.allowed? @model.url
-  rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError
+  rescue Faraday::TimeoutError, URI::InvalidURIError
     SpaceScrape.logger.error "Problem in fetcher for #{ @model.url }"
     false
   end

@@ -1,7 +1,6 @@
 require 'rake/clean'
 require 'rake/testtask'
 
-CLEAN << 'db/app.sqlite3'
 CLEAN << 'cache/'
 
 task :environment do
@@ -34,8 +33,11 @@ namespace :db do
     Seeds.load_seeds
   end
 
-  desc "Migrate and seed"
-  task reset: [ :environment, :migrate, :seed ]
+  desc "Truncate and reseed seed"
+  task reset: :environment do
+    DB.tables.each{ |table| DB[table].truncate }
+    Rake::Task['db:seed'].execute
+  end
 end
 
 Rake::TestTask.new do |t|

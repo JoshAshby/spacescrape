@@ -35,15 +35,15 @@ class ScraperWorker
 
     @id, @webpage = id, Webpage.find(id: id)
     return cancel! unless @webpage
-    return cancel! if @webpage.cached?
+    # return cancel! if @webpage.cached?
 
-    pipeline = Scraper.pipeline
+    scraper = Scraper.new
 
-    pipeline.subscribe to: /^doc:(fetched|cached)$/ do |bus, env|
+    scraper.pipeline.subscribe to: /^doc:(fetched|cached)$/ do |bus, env|
       SpaceScrape.lock_manager.unlock lock
     end
 
-    # pipeline.subscribe to: 'request:links' do |bus, links|
+    # scraper.pipeline.subscribe to: 'request:links' do |bus, links|
     #   links.shuffle.each do |link|
     #     link_webpage = Webpage.find_or_new url: link
     #     next unless link_webpage.new?
@@ -54,19 +54,21 @@ class ScraperWorker
     #   end
     # end
 
-    pipeline.subscribe to: 'request:cancel' do |bus|
+    scraper.pipeline.subscribe to: 'request:cancel' do |bus|
       SpaceScrape.logger.debug "Canceling job #{ jid }"
       cancel!
     end
 
-    pipeline.subscribe to: 'request:retry' do |bus, timeout|
+    scraper.pipeline.subscribe to: 'request:retry' do |bus, timeout|
       SpaceScrape.logger.debug "Requeueing job #{ jid }"
       requeue! timeout
     end
 
     SpaceScrape.logger.debug "Processing #{ @id } through pipeline..."
 
-    SpaceScrape.logger.debug pipeline.publish(to: 'doc:fetch', data: { model: @webpage })
+    subs = scraper.pipeline.publish to: 'doc:fetch', data: { model: @webpage }
+    SpaceScrape.logger.debug subs
+    SpaceScrape.logger.error "NO SUBSCRIBERS RECIEVED MESSAGE" unless subs
 
     SpaceScrape.logger.debug "All done with #{ @id }"
 

@@ -1,7 +1,8 @@
-module Scraper
-  module_function
-  def pipeline
-    PubsubPipeline.new do |pubsub|
+class Scraper
+  attr_accessor :pipeline
+
+  def initialize
+    @pipeline = PubsubPipeline.new do |pubsub|
       pubsub.subscribe to: 'doc:start' do |bus, url|
         webpage = Webpage.find_or_create url: url
         bus.publish to: 'doc:fetch', data: { model: webpage }
@@ -16,8 +17,8 @@ module Scraper
       pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Parser
       pubsub.subscribe to: 'doc:parsed',             with: Storer
 
-      # pubsub.subscribe to: 'doc:parsed',             with: Extractor
-      # pubsub.subscribe to: 'doc:extracted',          with: Analyzer
+      pubsub.subscribe to: 'doc:parsed',             with: Extractor
+      pubsub.subscribe to: 'doc:extracted',          with: Analyzer
     end
   end
 
@@ -25,7 +26,7 @@ module Scraper
     pipeline.publish to: 'doc:start', data: url
   end
 
-  def process_async url
+  def self.process_async url
     webpage = Webpage.find_or_create url: url
     ScraperWorker.perform_async webpage.id
   end

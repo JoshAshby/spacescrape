@@ -3,6 +3,6 @@ class Storer
     SpaceScrape.logger.debug "caching #{ env[:model] }"
 
     env[:model].update title: env[:nokogiri].title
-    env[:model].set_cache env[:body]
+    env[:model].cache = env[:body]
   end
 end

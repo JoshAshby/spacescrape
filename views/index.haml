@@ -2,6 +2,9 @@
   %input{ type: :text, name: :url, placeholder: "URL to scrape" }
   %button{ type: :submit } Queue!
 
+%p
+  Percent complete: #{ Webpage.where{ title !~ nil }.count / Webpage.count.to_f }
+
 %br
 %table
   %thead
