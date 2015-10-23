@@ -3,6 +3,9 @@
   %textarea{ name: :reason, placeholder: "Reason for blacklist" }
   %button{ type: :submit } Add
 
+%p
+  Total: #{ @blacklist.count }
+
 %table
   %thead
     %tr
@@ -16,4 +19,4 @@
         %td= item.id
         %td= item.pattern
         %td= item.reason
-        %td= item.created_at.iso8601 6
+        %td= item.created_at.utc.iso8601 6

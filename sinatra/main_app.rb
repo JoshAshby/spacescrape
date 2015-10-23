@@ -7,7 +7,10 @@ class MainApp < Sinatra::Base
   set :views, -> { SpaceScrape.root.join 'views' }
 
   get '/' do
-    @webpages = Webpage.all
+    total = Webpage.count.to_f
+    done  = Webpage.where{ title !~ nil }.count.to_f
+    @complete = "#{ ( done / total ) * 100 }% (or #{ done.to_i } out of #{ total.to_i })"
+    @webpages = Webpage.order(:id)
 
     haml :index
   end
@@ -25,7 +28,7 @@ class MainApp < Sinatra::Base
         seconds_left: Redis.current.ttl(key),
         set_at: Redis.current.get(key)
       }
-    end.select{ |p| p[:seconds_left] >= 0 }
+    end.select{ |p| p[:seconds_left] >= 0 }.sort_by{ |f| f[:seconds_left] }
 
     haml :timeout
   end

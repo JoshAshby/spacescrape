@@ -14,6 +14,13 @@ blacklist:
   - '(.*)instagram.com(.*)'
   - '(.*)twitter.com(.*)'
   - '(.*)tinyurl.com(.*)'
+  - '(.*)linkedin.com(.*)'
+  - '(.*)youtube.com(.*)'
+  - '(.*)pintrest.com(.*)'
+  - '(.*)howstuffworks.com(.*)'
+  - '(.*)adobe.com(.*)'
+  - '(.*)toms(.*)'
+  - '(.*)t.co(.*)'
   - '(.*)wikipedia.org/w/index.php(.*)'
 
 keywords:

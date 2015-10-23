@@ -3,9 +3,8 @@
   %button{ type: :submit } Queue!
 
 %p
-  Percent complete: #{ Webpage.where{ title !~ nil }.count / Webpage.count.to_f }
+  Percent complete: #{ @complete }
 
-%br
 %table
   %thead
     %tr
@@ -33,5 +32,5 @@
 
         %td= webpage.title[0..60] if webpage.title
 
-        %td= webpage.created_at.iso8601 6
-        %td= webpage.updated_at.iso8601 6 if webpage.updated_at
+        %td= webpage.created_at.utc.iso8601 6
+        %td= webpage.updated_at.utc.iso8601 6 if webpage.updated_at
