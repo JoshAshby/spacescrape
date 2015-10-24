@@ -1,0 +1,15 @@
+image: ruby:latest
+
+variables:
+  POSTGRES_DB: spacescrape_test
+  POSTGRES_USER: postgres
+
+services:
+  - redis:latest
+  - postgres:9.4
+
+test:
+  script:
+  - bundle install --path .gems
+  - bundle exec rake db:migrate RACK_ENV=test
+  - bundle exec rake test
