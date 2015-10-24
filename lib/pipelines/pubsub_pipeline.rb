@@ -18,6 +18,12 @@ class PubsubPipeline
 
     @subscribers[to] ||= []
     @subscribers[to] << with
+
+    with
+  end
+
+  def unsubscribe from:, with:, &block
+    @subscribers[from].delete with, &block
   end
 
   def stop!
