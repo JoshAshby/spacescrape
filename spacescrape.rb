@@ -4,9 +4,7 @@ require 'bundler/setup'
 require 'awesome_print'
 require 'byebug'
 
-require 'active_support/all'
 require 'sinatra'
-require 'config_for'
 
 module SpaceScrape
   module_function
@@ -14,8 +12,26 @@ module SpaceScrape
     @@root ||= Pathname.new File.dirname(__FILE__)
   end
 
+  def environment
+    Sinatra::Base.environment
+  end
+
+  # Shamelessly stolen, then cleaned up a bit, from the [Rails project](https://github.com/rails/rails/blob/0450642c27af3af35b449208b21695fd55c30f90/railties/lib/rails/application.rb#L218-L231)
   def config_for name
-    ConfigFor.load_config! SpaceScrape.root.join('config'), name, Sinatra::Base.environment
+    yaml = SpaceScrape.root.join 'config', "#{ name }.yml"
+
+    unless yaml.exist?
+      raise "Could not load configuration. No such file - #{ yaml }"
+    end
+
+    erb = ERB.new(yaml.read).result
+    erbd_yaml = YAML.load erb
+
+    erbd_yaml[SpaceScrape.environment.to_s] || {}
+  rescue Psych::SyntaxError => e
+    raise "YAML syntax error occurred while parsing #{ yaml }. " \
+      "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+      "Error: #{ e.message }"
   end
 end
 
@@ -27,7 +43,7 @@ end
 # Require all of our code... This allows us to avoid having to do a lot of
 # require_relatives all over the place, leaving us to only require the external
 # gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
-%w| initializers sinatra workers models lib |.each do |dir|
+%w| lib/monkey_patches initializers sinatra workers models lib |.each do |dir|
   directory = SpaceScrape.root.join dir, '**/*.rb'
   Dir[directory].sort.each do |file|
     next if File.directory? file

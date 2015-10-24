@@ -23,11 +23,11 @@ gem 'sidekiq'
 gem 'sinatra'
 gem 'haml'
 
-gem 'config_for'
-gem 'activesupport'
-
 group :doc do
   gem 'yard'
+end
+
+group :development do
   gem 'byebug'
   gem 'awesome_print'
 end
