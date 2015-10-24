@@ -10,7 +10,7 @@ variables:
 
 before_script:
   - gem install bundler
-  - bundle install --path .gems
+  - bundle install --path cache/bunder
   - bundle exec rake db:migrate RACK_ENV=test
 
 test:
