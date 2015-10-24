@@ -4,10 +4,18 @@ require 'bundler/setup'
 require 'awesome_print'
 require 'byebug'
 
+require 'active_support/all'
+require 'sinatra'
+require 'config_for'
+
 module SpaceScrape
   module_function
   def root
     @@root ||= Pathname.new File.dirname(__FILE__)
+  end
+
+  def config_for name
+    ConfigFor.load_config! SpaceScrape.root.join('config'), name, Sinatra::Base.environment
   end
 end
 

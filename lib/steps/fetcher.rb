@@ -5,14 +5,14 @@ require 'faraday'
 require 'faraday_middleware'
 
 class Fetcher
-  def initialize user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:40.0) Gecko/20100101 Firefox/40.1'
+  def initialize conn: nil, user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:40.0) Gecko/20100101 Firefox/40.1'
     @user_agent = user_agent
 
-    @conn = Faraday.new headers: {
+    @conn = conn || Faraday.new(headers: {
       'Accept-Language' => 'en',
       'User-Agent' => @user_agent,
       'Accept' => 'text/html; charset=utf-8'
-    } do |builder|
+    }) do |builder|
       # builder.use Faraday::Response::Logger,          SpaceScrape.logger
       builder.use FaradayMiddleware::FollowRedirects, limit: 3
 

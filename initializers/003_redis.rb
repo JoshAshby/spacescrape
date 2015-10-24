@@ -9,7 +9,7 @@ require 'redlock'
 module SpaceScrape
   module_function
   def new_redis_connection **opts
-    Redis::Namespace.new 'spacescrape', { redis: Redis.new}.merge(opts)
+    Redis::Namespace.new 'spacescrape', { redis: Redis.new }.merge(opts)
   end
 
   def lock_manager

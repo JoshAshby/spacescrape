@@ -1,7 +1,12 @@
 require 'rake/clean'
 require 'rake/testtask'
 
-CLEAN << 'cache/'
+require 'yard'
+
+CLEAN << 'coverage/'
+CLEAN << 'doc/'
+
+CLOBBER << 'cache/'
 
 task :environment do
   require_relative './spacescrape'
@@ -50,4 +55,9 @@ desc 'Generates a coverage report'
 task :coverage do
   ENV['COVERAGE'] = 'true'
   Rake::Task['test'].execute
+end
+
+YARD::Rake::YardocTask.new do |t|
+  t.files = ['lib/**/*.rb', 'sinatra/**/*.rb', 'workers/**/*.rb', 'models/**/*.rb', 'initializers/**/*.rb', 'spacescrape.rb', 'README.md']
+  # t.stats_options = ['--list-undoc']
 end

@@ -23,6 +23,9 @@ gem 'sidekiq'
 gem 'sinatra'
 gem 'haml'
 
+gem 'config_for'
+gem 'activesupport'
+
 group :doc do
   gem 'yard'
   gem 'byebug'
