@@ -51,10 +51,12 @@ end
 
 task default: :test
 
-desc 'Generates a coverage report'
-task :coverage do
-  ENV['COVERAGE'] = 'true'
-  Rake::Task['test'].execute
+namespace :test do
+  desc 'Generates a coverage report'
+  task :coverage do
+    ENV['COVERAGE'] = 'true'
+    Rake::Task['test'].execute
+  end
 end
 
 YARD::Rake::YardocTask.new do |t|

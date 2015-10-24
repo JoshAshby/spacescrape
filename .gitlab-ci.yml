@@ -1,20 +1,18 @@
 image: ruby:2.2.2
 
-variables:
-  POSTGRES_DB: spacescrape_test
-  POSTGRES_USER: postgres
-
 services:
   - redis:latest
   - postgres:9.4
 
+variables:
+  POSTGRES_DB: spacescrape_test
+  POSTGRES_USER: postgres
+
 before_script:
-  - whoami
-  - ruby -v
   - gem install bundler
   - bundle install --path .gems
   - bundle exec rake db:migrate RACK_ENV=test
 
 test:
   script:
-  - bundle exec rake test
+    - bundle exec rake test:coverage
