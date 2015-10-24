@@ -35,8 +35,8 @@ class Parser
     SpaceScrape.logger.debug "Language of #{ @env[:model].url } is #{ lang_attr }. #{  }"
     SpaceScrape.logger.debug "Language matches en? #{ lang_attr.to_s =~ /en/ }" if lang_attr
 
-    return true if lang_attr && lang_attr.to_s =~ /en/
+    return true if lang_attr && (lang_attr.to_s =~ /en/) != nil
 
-    lang_attr =~ /^en/
+    (lang_attr =~ /^en/) != nil
   end
 end

@@ -66,7 +66,7 @@ class ScraperWorker
 
     SpaceScrape.logger.debug "Processing #{ @id } through pipeline..."
 
-    subs = scraper.pipeline.publish to: 'doc:fetch', data: { model: @webpage }
+    subs = scraper.process @webpage
     SpaceScrape.logger.debug subs
     SpaceScrape.logger.error "NO SUBSCRIBERS RECIEVED MESSAGE" unless subs
 

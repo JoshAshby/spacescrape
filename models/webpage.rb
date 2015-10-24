@@ -1,19 +1,29 @@
 class Webpage < Sequel::Model
+  one_to_many :parses
+  one_to_many :links
+
   def validate
     super
 
-    errors.add(:url, 'cannot be empty') if !url || url.empty?
+    errors.add :url, 'cannot be empty' if !url || url.empty?
+
+    # checker = UrlChecker.new
+    # checker.pipeline.subscribe to: 'request:cancel' do
+    #   errors.add :url, 'bad, or forbidden url'
+    # end
+
+    # checker.check url
   end
 
   def before_save
     return false if super == false
 
-    self.url = self.url.split('#', 2).first
-    self.sha_hash = SpaceScrape.cache.key(self.url)
+    self.url = url.split('#', 2).first
+    self.sha_hash = SpaceScrape.cache.key url
   end
 
   def uri
-    @uri ||= URI self.url
+    @uri ||= URI url
   end
 
   def host

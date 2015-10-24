@@ -1,8 +1,8 @@
 class Scraper
   attr_accessor :pipeline
 
-  def initialize
-    @pipeline = PubsubPipeline.new do |pubsub|
+  def pipeline
+    @pipeline ||= PubsubPipeline.new do |pubsub|
       pubsub.subscribe to: 'doc:start' do |bus, url|
         webpage = Webpage.find_or_create url: url
         bus.publish to: 'doc:fetch', data: { model: webpage }
@@ -12,6 +12,13 @@ class Scraper
       pubsub.subscribe to: 'doc:fetch',              with: Timeouter
       pubsub.subscribe to: 'doc:fetch',              with: Blacklister
       pubsub.subscribe to: 'doc:fetch',              with: Roboter
+      pubsub.subscribe to: 'doc:fetch' do |bus, env|
+        max = Setting.find(name: 'max_scrapes').value.to_i
+        if Webpage.where{ title !~ nil }.count >= max
+          bus.publish to: 'request:cancel'
+          bus.stop!
+        end
+      end
       pubsub.subscribe to: 'doc:fetch',              with: Fetcher
 
       pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Parser
@@ -23,6 +30,10 @@ class Scraper
   end
 
   def process url
+    if url.kind_of? Webpage
+      return pipeline.publish to: 'doc:fetch', data: { model: url }
+    end
+
     pipeline.publish to: 'doc:start', data: url
   end
 

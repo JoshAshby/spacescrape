@@ -38,9 +38,12 @@ namespace :db do
     Seeds.load_seeds
   end
 
-  desc "Truncate and reseed seed"
+  desc "Reset, migrate and reseed seed"
   task reset: :environment do
-    DB.tables.each{ |table| DB[table].truncate }
+    puts "Droping existing tables"
+    DB.run 'drop schema if exists public cascade'
+    DB.run 'create schema public;'
+    Rake::Task['db:migrate'].execute
     Rake::Task['db:seed'].execute
   end
 end

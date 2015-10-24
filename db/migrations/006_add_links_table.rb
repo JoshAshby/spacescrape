@@ -1,11 +1,11 @@
 Sequel.migration do
   change do
-    create_table :parses do
+    create_table :links do
       primary_key :id
 
-      integer :webpage_id
+      foreign_key :webpage_id, :webpages
 
-      DateTime :parsed_at
+      text :url
 
       DateTime :created_at
       DateTime :updated_at
