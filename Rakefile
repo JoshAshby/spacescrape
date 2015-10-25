@@ -63,6 +63,7 @@ namespace :test do
 end
 
 YARD::Rake::YardocTask.new do |t|
-  t.files = ['lib/**/*.rb', 'sinatra/**/*.rb', 'workers/**/*.rb', 'models/**/*.rb', 'initializers/**/*.rb', 'spacescrape.rb', 'README.md']
+  t.files = ['lib/**/*.rb', 'sinatra/**/*.rb', 'workers/**/*.rb', 'models/**/*.rb', 'initializers/**/*.rb', 'spacescrape.rb']
+  t.options = [ '-', 'README.md' ]
   # t.stats_options = ['--list-undoc']
 end

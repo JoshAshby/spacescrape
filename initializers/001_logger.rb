@@ -13,4 +13,8 @@ module SpaceScrape
 end
 
 # setup our logger for everything...
-SpaceScrape.logger.level = Logger::DEBUG
+if SpaceScrape.environment == :development
+  SpaceScrape.logger.level = Logger::DEBUG
+else
+  SpaceScrape.logger.level = Logger::INFO
+end
