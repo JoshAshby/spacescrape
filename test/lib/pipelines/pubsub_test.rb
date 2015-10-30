@@ -1,10 +1,10 @@
 require_relative '../../test_helper'
 
-class PubsubPipelineTest < MiniTest::Test
+class Pipelines::PubsubTest < MiniTest::Test
   def test_symbol_channel
     expected = 'sigyn'
 
-    pipeline = PubsubPipeline.new do |pubsub|
+    pipeline = Pipelines::Pubsub.new do |pubsub|
       pubsub.subscribe to: :test do |bus, env|
         assert bus == pipeline
         assert env == expected
@@ -19,7 +19,7 @@ class PubsubPipelineTest < MiniTest::Test
   def test_string_channel
     expected = 'sigyn'
 
-    pipeline = PubsubPipeline.new do |pubsub|
+    pipeline = Pipelines::Pubsub.new do |pubsub|
       pubsub.subscribe to: 'test' do |bus, env|
         assert bus == pipeline
         assert env == expected
@@ -34,7 +34,7 @@ class PubsubPipelineTest < MiniTest::Test
   def test_regex_channel
     expected = 'sigyn'
 
-    pipeline = PubsubPipeline.new do |pubsub|
+    pipeline = Pipelines::Pubsub.new do |pubsub|
       pubsub.subscribe to: /^test$/ do |bus, env|
         assert bus == pipeline
         assert env == expected

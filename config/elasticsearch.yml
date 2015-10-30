@@ -1,0 +1,19 @@
+defaults: &defaults
+  randomize_hosts: true
+  retry_on_failure: 3
+  reload_connections: true
+
+development:
+  <<: *defaults
+  log: true
+
+test:
+  <<: *defaults
+  hosts:
+    - host: localhost
+      port: 9250
+    - host: localhost
+      port: 9251
+
+production:
+  <<: *defaults

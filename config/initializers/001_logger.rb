@@ -1,6 +1,6 @@
 require 'logger'
 
-require_relative '../lib/multi_io'
+require_relative '../../lib/multi_io'
 
 module SpaceScrape
   module_function

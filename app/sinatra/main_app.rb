@@ -4,12 +4,9 @@ require 'tilt/haml'
 
 # Finally the sinatra app to interface with this all...
 class MainApp < Sinatra::Base
-  set :views, -> { SpaceScrape.root.join 'views' }
+  set :views, -> { SpaceScrape.root.join 'app/views' }
 
   get '/' do
-    total = Webpage.count.to_f
-    done  = Webpage.where{ title !~ nil }.count.to_f
-    @complete = "#{ ( done / total ) * 100 }% (or #{ done.to_i } out of #{ total.to_i })"
     @webpages = Webpage.order(:id)
 
     haml :index

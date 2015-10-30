@@ -6,6 +6,8 @@ Sequel.migration do
       text :pattern
       index :pattern
 
+      foreign_key :topic_id, :topics
+
       text :reason
 
       DateTime :created_at

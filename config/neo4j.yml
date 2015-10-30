@@ -1,0 +1,16 @@
+defaults: &defaults
+  session_type: server_db
+  session_path: 'http://localhost:7474'
+  session_options:
+    basic_auth:
+      username: 'neo4j'
+      password: 'neo'
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

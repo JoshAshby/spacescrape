@@ -4,7 +4,9 @@ Sequel.migration do
       primary_key :id
 
       text :name
-      index :name, unique: true
+      index :name
+
+      foreign_key :topic_id, :topics, null: true
 
       text :value
 

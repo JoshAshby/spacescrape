@@ -9,10 +9,10 @@ if ENV['COVERAGE']
 
     command_name 'Mintest'
 
-    add_group 'Initializers', 'initializers'
-    add_group 'Models',       'models'
-    add_group 'Workers',      'workers'
-    add_group 'Sinatra',      'sinatra'
+    add_group 'Initializers', 'config/initializers'
+    add_group 'Models',       'app/models'
+    add_group 'Workers',      'app/workers'
+    add_group 'Sinatra',      'app/sinatra'
     add_group 'Lib',          'lib'
   end
 end
@@ -28,7 +28,7 @@ require 'rack/test'
 require_relative '../spacescrape.rb'
 
 require 'sidekiq/testing'
-Sidekiq::Testing.fake! # fake is the default mode
+Sidekiq::Testing.fake!    # fake is the default mode
 Sidekiq::Testing.disable!
 
 module SidekiqMinitestSupport

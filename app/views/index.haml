@@ -12,7 +12,6 @@
       %th ID
       %th Cached?
       %th Url
-      %th Title
       %th Created At
       %th Updated At
 
@@ -29,8 +28,6 @@
 
         %td
           %a{ href: webpage.url }= webpage.url[0..60]
-
-        %td= webpage.title[0..60] if webpage.title
 
         %td= webpage.created_at.utc.iso8601 6
         %td= webpage.updated_at.utc.iso8601 6 if webpage.updated_at

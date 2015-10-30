@@ -43,7 +43,7 @@ end
 # Require all of our code... This allows us to avoid having to do a lot of
 # require_relatives all over the place, leaving us to only require the external
 # gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
-%w| lib/monkey_patches initializers sinatra workers models lib |.each do |dir|
+%w| lib/monkey_patches config/initializers app lib |.each do |dir|
   directory = SpaceScrape.root.join dir, '**/*.rb'
   Dir[directory].sort.each do |file|
     next if File.directory? file

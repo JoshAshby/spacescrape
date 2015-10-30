@@ -1,12 +1,12 @@
 Sequel.migration do
   change do
-    create_table :keywords do
+    create_table :webpages do
       primary_key :id
 
-      text :keyword
-      index :keyword, unique: true
+      text :url
 
-      integer :weight
+      text :sha_hash
+      index :sha_hash
 
       DateTime :created_at
       DateTime :updated_at

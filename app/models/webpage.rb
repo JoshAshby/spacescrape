@@ -1,18 +1,8 @@
 class Webpage < Sequel::Model
-  one_to_many :parses
-  one_to_many :links
-
   def validate
     super
 
     errors.add :url, 'cannot be empty' if !url || url.empty?
-
-    # checker = UrlChecker.new
-    # checker.pipeline.subscribe to: 'request:cancel' do
-    #   errors.add :url, 'bad, or forbidden url'
-    # end
-
-    # checker.check url
   end
 
   def before_save
