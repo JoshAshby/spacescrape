@@ -12,7 +12,7 @@ Sequel.default_timezone = :utc
 DB.extension :pg_array, :pg_json, :pg_enum
 DB.extension :pagination
 
-Sequel::Model.plugin :active_model
+# Sequel::Model.plugin :active_model
 Sequel::Model.plugin :update_or_create
 
 Sequel::Model.plugin :dirty

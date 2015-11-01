@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require_relative '../spacescrape'
+require 'sneakers/runner'
+
+workers = Workers.constants.map do |c|
+  const = Workers.const_get c
+
+  next nil unless const.ancestors.include? Sneakers::Worker
+
+  const
+end.compact
+
+r = Sneakers::Runner.new workers
+r.run

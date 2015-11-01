@@ -1,0 +1,12 @@
+defaults: &defaults
+  amqp: 'amqp://guest:guest@localhost:5672'
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+  amqp: "amqp://guest:guest@<%= ENV['RABBITMQ_NODENAME'] %>:5672"
+
+production:
+  <<: *defaults

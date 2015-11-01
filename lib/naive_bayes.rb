@@ -2,7 +2,7 @@ require 'classifier-reborn'
 
 # Helper to wrap up the classifier and tie it in with the cache system to
 # ensure its saved
-class Classifier
+class NaiveBayes
   def initialize(name:)
     @name = name
   end

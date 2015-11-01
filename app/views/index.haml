@@ -1,33 +1,18 @@
-%form{ method: :post }
-  %input{ type: :text, name: :url, placeholder: "URL to scrape" }
-  %button{ type: :submit } Queue!
-
-%p
-  Percent complete: #{ @complete }
-
 %table
   %thead
     %tr
-      %th
       %th ID
-      %th Cached?
-      %th Url
+      %th Topic
       %th Created At
       %th Updated At
 
   %tbody
-    - @webpages.each do |webpage|
+    - @topics.each do |topic|
       %tr
-        %td
-          %form{ method: :post }
-            %input{ type: :hidden, name: :url, value: webpage.url }
-            %button{ type: :submit } Requeue!
-
-        %td= webpage.id
-        %td= webpage.cached?
+        %td= topic.id
 
         %td
-          %a{ href: webpage.url }= webpage.url[0..60]
+          %a{ href: "/topics/#{topic.id}" }= topic.name
 
-        %td= webpage.created_at.utc.iso8601 6
-        %td= webpage.updated_at.utc.iso8601 6 if webpage.updated_at
+        %td= topic.created_at.utc.iso8601 6
+        %td= topic.updated_at.utc.iso8601 6 if topic.updated_at

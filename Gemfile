@@ -22,6 +22,8 @@ gem 'connection_pool'
 # Postgres, ORM
 gem 'pg'
 gem 'sequel'
+gem 'sequel_pg', require: 'sequel'
+# gem 'sequel_secure_password'
 
 # Redis Utils
 gem 'redis'
@@ -29,11 +31,11 @@ gem 'redis-namespace'
 gem 'redlock'
 
 # Elasticsearch
-gem 'elasticsearch'
-gem 'elasticsearch-model'
+# gem 'elasticsearch'
+# gem 'elasticsearch-model'
 
 # Neo4j
-gem 'neo4j'
+# gem 'neo4j'
 
 # RabbitMQ
 gem 'bunny'
@@ -45,6 +47,8 @@ gem 'sneakers' # RabbitMQ Backed
 # Frontend
 gem 'sinatra'
 gem 'haml'
+
+gem 'foreman'
 
 group :doc do
   gem 'yard'

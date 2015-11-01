@@ -3,10 +3,12 @@ image: ruby:2.2.2
 services:
   - redis:latest
   - postgres:9.4
+  - rabbitmq:latest
 
 variables:
   POSTGRES_DB: spacescrape_test
   POSTGRES_USER: postgres
+  RABBITMQ_NODENAME: rabbit_test
 
 before_script:
   - gem install bundler

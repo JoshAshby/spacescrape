@@ -65,8 +65,9 @@ module Pipelines
       data = yield if block_given?
 
       to = to.to_s
-      subs = @subscribers.select{ |k, v| k.match to }
-        .values.flatten
+      subs = @subscribers.select do |k, v|
+        Array(to).any?{ |t| k.match t }
+      end.values.flatten
 
       SpaceScrape.logger.debug "Published #{ to } to #{ subs }"
 

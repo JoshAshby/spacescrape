@@ -81,7 +81,7 @@ module Seeds
     end
 
     starter['topics'].each do |key, val|
-      topic = Topic.new name: key
+      topic = Topic.create name: key
 
       # Couple of default settings, these should be updatable from the web
       # eventually to allow for quick fine tuning

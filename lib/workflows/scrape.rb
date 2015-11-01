@@ -1,21 +1,25 @@
 module Workflows
-  class Scrape
-    attr_accessor :pipeline
-
-    def pipeline
-      @pipeline ||= Pipelines::Pubsub.new do |pubsub|
-        pubsub.subscribe to: 'doc:fetch',              with: Steps::Cacher
-        pubsub.subscribe to: 'doc:fetch',              with: Steps::Timeouter
-        pubsub.subscribe to: 'doc:fetch',              with: Steps::Blacklister
-        pubsub.subscribe to: 'doc:fetch',              with: Steps::Roboter
-        pubsub.subscribe to: 'doc:fetch',              with: Steps::Fetcher
-
-        pubsub.subscribe to: /^doc:(fetched|cached)$/, with: Steps::Storer
+  class Scrape < Base
+    def initialize
+      subscribe to: 'doc:' do |bus, env|
+        env.model = Webpage.find url: env.url
       end
+
+      subscribe to: 'doc:fetch',   with: Cacher
+      subscribe to: 'doc:fetch',   with: Timeouter
+      subscribe to: 'doc:fetch',   with: Blacklister
+      subscribe to: 'doc:fetch',   with: Roboter
+      subscribe to: 'doc:fetch',   with: Fetcher
+
+      subscribe to: 'doc:fetched', with: Storer
     end
 
-    def process url
-      pipeline.publish to: 'doc:fetch', data: package
+    def process(url:)
+      package = OpenStruct.new url: url
+
+      publish to: 'doc:fetch', data: package
+
+      package
     end
   end
 end

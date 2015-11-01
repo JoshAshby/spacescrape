@@ -5,6 +5,7 @@ require 'awesome_print'
 require 'byebug'
 
 require 'sinatra'
+require 'tilt/erb'
 
 module SpaceScrape
   module_function
@@ -45,10 +46,10 @@ end
 # gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
 %w| lib/monkey_patches config/initializers app lib |.each do |dir|
   directory = SpaceScrape.root.join dir, '**/*.rb'
-  Dir[directory].sort.each do |file|
-    next if File.directory? file
 
-    require_relative file
+  files = Dir[directory]
+  files.sort.each do |file|
+    require file unless File.directory? file
   end
 end
 
