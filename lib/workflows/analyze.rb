@@ -1,16 +1,13 @@
 module Workflows
   class Analyze < Base
     def initialize
-      subscribe to: 'doc:extract',   with: Extractor
+      subscribe to: 'doc:fetch',     with: Fetcher
+      subscribe to: 'doc:fetched',   with: Extractor
       subscribe to: 'doc:extracted', with: Analyzer
     end
 
     def process(url:)
-      model = Webpage.find url: url
-
-      publish to: 'doc:extract', data: model
-
-      package
+      publish to: 'doc:fetch', data: url
     end
   end
 end

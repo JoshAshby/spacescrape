@@ -3,13 +3,6 @@ module Workers
     include Sneakers::Worker
     from_queue 'scrape'
 
-    def reschedule_timeout timeout: 60
-      jitter_threshold = Setting.find({ name: 'play_nice_jitter_threshold' }).value.to_i
-
-      jitter = SecureRandom.random_number jitter_threshold
-      timeout + jitter
-    end
-
     def work msg
       data = JSON.parse msg
 
@@ -34,7 +27,6 @@ module Workers
 
         Redis.current.set "rescheduled:#{ data['url'] }", true
         RescheduleWorker.perform_in env[:timeout], data['url']
-
         return ack!
       end
 
