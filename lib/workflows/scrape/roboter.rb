@@ -23,35 +23,33 @@ module Workflows
         end
       end
 
-      def call bus, env
-        @model = env[:model]
+      def call bus, uri
+        return if allowed? uri
 
-        return if allowed?
-
-        SpaceScrape.logger.debug "#{ @model.uri } isn't allowed"
-        bus.publish to: 'request:cancel', data: env
+        SpaceScrape.logger.debug "#{ uri.to_s } isn't allowed"
+        bus.publish to: 'request:cancel', data: uri
         bus.stop!
       end
 
       protected
 
-      def allowed?
-        cache_name = "parser:#{ @model.uri.host }"
+      def allowed? uri
+        cache_name = "robots:#{ uri.host }"
 
         if SpaceScrape.cache.cached? cache_name
           raw = SpaceScrape.cache.get cache_name
           parser = Marshal.load raw
         else
-          res = @conn.get @model.uri + '/robots.txt'
+          res = @conn.get uri + '/robots.txt'
           parser = Robotstxt.parse res.body, @user_agent
 
           raw = Marshal.dump parser
           SpaceScrape.cache.set cache_name, raw
         end
 
-        parser.allowed? @model.url
+        parser.allowed? uri.to_s
       rescue Faraday::TimeoutError, URI::InvalidURIError
-        SpaceScrape.logger.error "Problem in fetcher for #{ @model.url }"
+        SpaceScrape.logger.error "Problem in fetcher for #{ uri.to_s }"
         false
       end
     end

@@ -1,12 +1,14 @@
 module Workers
   class ScrapeWorker
     include Sneakers::Worker
-    from_queue 'scrape'
+    from_queue 'analyze'
 
-    def work url
+    def work msg
+      data = JSON.parse msg
+
       analyzer = Workflows::Analyze.new
 
-      analyzer.process url
+      analyzer.process url: data[:url]
 
       ack!
     end

@@ -2,7 +2,7 @@ require 'nokogiri'
 require 'byebug'
 
 module Workflows
-  class Analyze
+  class Scrape
     class Parser
       def call bus, env
         @env = env
@@ -22,7 +22,7 @@ module Workflows
         hrefs = @document.xpath('//a/@href')
         links = hrefs.map do |href|
           begin
-            (@env[:model].uri + href).to_s.split('#', 2).first
+            (@env[:uri] + href).to_s.split('#', 2).first
           rescue URI::InvalidURIError, NoMethodError
             next
           end
@@ -34,7 +34,7 @@ module Workflows
       def check_language
         lang_attr = @document.xpath '/html/@lang'
 
-        SpaceScrape.logger.debug "Language of #{ @env[:model].url } is #{ lang_attr }. #{  }"
+        SpaceScrape.logger.debug "Language of #{ @env[:uri].to_s } is #{ lang_attr }. #{  }"
         SpaceScrape.logger.debug "Language matches en? #{ lang_attr.to_s =~ /en/ }" if lang_attr
 
         return true if lang_attr && (lang_attr.to_s =~ /en/) != nil

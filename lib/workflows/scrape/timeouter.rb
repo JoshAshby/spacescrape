@@ -1,19 +1,26 @@
 module Workflows
   class Scrape
     class Timeouter
-      def call bus, env
-        in_timeout = Redis.current.get Redis::Helpers.key(env.model.uri.host, :nice)
-        return unless in_timeout
+      def call bus, uri
+        in_timeout = Redis.current.get Redis::Helpers.key(uri.host, :nice)
 
-        bus.publish to: 'request:reschedule', data: requeue_delay
+        unless in_timeout
+          Redis.current.setex Redis::Helpers.key(uri.host, :nice), timeout, Time.now.utc.iso8601
+          return
+        end
+
+        bus.publish to: 'request:reschedule', data: { uri: uri, timeout: timeout }
         bus.stop!
       end
 
-      def requeue_delay timeout: 60
-        jitter_threshold = Setting.find({ name: 'play_nice_jitter_threshold' }).value.to_i
-        jitter = SecureRandom.random_number jitter_threshold
+      def timeout
+        @min ||= Setting.find({ name: 'timeout_min' }).value.to_i
+        @max ||= Setting.find({ name: 'timeout_max' }).value.to_i
 
-        timeout + jitter
+        @jitter_threshold ||= @max - @min
+        jitter = SecureRandom.random_number @jitter_threshold
+
+        timeout ||= @min + jitter
       end
     end
   end

@@ -1,15 +1,14 @@
 module Workflows
   class Analyze < Base
     def initialize
-      subscribe to: 'doc:parse',     with: Parser
-      subscribe to: 'doc:parsed',    with: Extractor
+      subscribe to: 'doc:extract',   with: Extractor
       subscribe to: 'doc:extracted', with: Analyzer
     end
 
     def process(url:)
-      package = OpenStruct.new url: url
+      model = Webpage.find url: url
 
-      publish to: 'doc:parse', data: package
+      publish to: 'doc:extract', data: model
 
       package
     end

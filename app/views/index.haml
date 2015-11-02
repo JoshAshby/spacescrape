@@ -1,18 +1,1 @@
-%table
-  %thead
-    %tr
-      %th ID
-      %th Topic
-      %th Created At
-      %th Updated At
-
-  %tbody
-    - @topics.each do |topic|
-      %tr
-        %td= topic.id
-
-        %td
-          %a{ href: "/topics/#{topic.id}" }= topic.name
-
-        %td= topic.created_at.utc.iso8601 6
-        %td= topic.updated_at.utc.iso8601 6 if topic.updated_at
+%a{ href: '/topics' } Topics

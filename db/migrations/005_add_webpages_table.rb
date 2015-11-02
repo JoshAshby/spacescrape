@@ -4,9 +4,11 @@ Sequel.migration do
       primary_key :id
 
       text :url
+      index :url, unique: true
 
-      text :sha_hash
-      index :sha_hash
+      column :links, "text[]"
+
+      DateTime :last_hit_at
 
       DateTime :created_at
       DateTime :updated_at

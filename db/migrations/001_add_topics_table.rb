@@ -6,6 +6,9 @@ Sequel.migration do
       text :name
       index :name
 
+      text :key
+      index :key, unique: true
+
       DateTime :created_at
       DateTime :updated_at
     end

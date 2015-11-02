@@ -1,12 +1,12 @@
 DATA = <<-YML
 settings:
-  play_nice_timeout: 60
-  play_nice_jitter_threshold: 60
+  timeout_min: 10
+  timeout_max: 60
 
 topics:
   general_nasa:
     settings:
-      max_scrapes: 500
+      max_results: 500
 
     blacklist:
       - '(.*)xxx(.*)'
@@ -26,6 +26,8 @@ topics:
       - '(.*)toms(.*)'
       - '(.*)t.co(.*)'
       - '(.*)wikipedia.org/w/index.php(.*)'
+      - '(.*)cbs(local|sports)(.*)'
+      - '(.*)apple.com(.*)'
 
     bootstrap_keywords:
       - nasa

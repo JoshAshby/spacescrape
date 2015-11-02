@@ -9,4 +9,8 @@ require 'tilt/erb'
 
 class ApplicationController < Sinatra::Base
   set :views, -> { SpaceScrape.root.join 'app/views' }
+
+  get '/' do
+    haml :index
+  end
 end

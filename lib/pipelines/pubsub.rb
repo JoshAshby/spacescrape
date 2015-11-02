@@ -69,12 +69,12 @@ module Pipelines
         Array(to).any?{ |t| k.match t }
       end.values.flatten
 
-      SpaceScrape.logger.debug "Published #{ to } to #{ subs }"
+      SpaceScrape.logger.debug "Publishing #{ to } to #{ subs }"
 
       actual_subs = []
 
       subs.each do |sub|
-        SpaceScrape.logger.debug "Publishing #{ to } to #{ sub }"
+        SpaceScrape.logger.debug "\tPublishing #{ to } to #{ sub }"
 
         break if @stop
         sub = sub.new if sub.class == Class

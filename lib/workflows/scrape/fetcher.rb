@@ -22,34 +22,15 @@ module Workflows
         end
       end
 
-      def call bus, env
-        @model = env[:model]
-
-        go_to_timeout!
-
-        SpaceScrape.logger.debug "Fetching url for #{ @model.uri }"
+      def call bus, uri
+        SpaceScrape.logger.debug "Fetching url for #{ uri.to_s }"
 
         # TODO: handle errors
-        res = @conn.get @model.uri.to_s
+        res = @conn.get uri.to_s
 
-        bus.publish to: 'doc:fetched', data: env.merge({ body: res.body })
+        bus.publish to: 'doc:fetched', data: { uri: uri, body: res.body }
       rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError
-        SpaceScrape.logger.error "Problem in fetcher for #{ @model.url }"
-      end
-
-      protected
-
-      def get_timeout
-        out = Setting.find{ name =~ 'play_nice_timeout' }.value.to_i
-        jitter = Setting.find{ name =~ 'play_nice_jitter_threshold' }.value.to_i
-
-        out + SecureRandom.random_number(jitter)
-      end
-
-      def go_to_timeout!
-        timeout = get_timeout
-        SpaceScrape.logger.debug "Going into a #{ timeout }s long timeout for domain #{ @model.uri.host }"
-        Redis.current.setex Redis::Helpers.key(@model.uri.host, :nice), timeout, Time.now.utc.iso8601
+        SpaceScrape.logger.error "Problem in fetcher for #{ uri.to_s }"
       end
     end
   end
