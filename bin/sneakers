@@ -6,10 +6,12 @@ require 'sneakers/runner'
 workers = Workers.constants.map do |c|
   const = Workers.const_get c
 
-  next nil unless const.ancestors.include? Sneakers::Worker
+  next unless const.ancestors.include? Sneakers::Worker
 
   const
 end.compact
+
+puts "Starting up sneakers workers: #{ workers }"
 
 r = Sneakers::Runner.new workers
 r.run
