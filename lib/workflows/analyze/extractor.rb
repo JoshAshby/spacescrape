@@ -1,6 +1,9 @@
 require 'readability'
 require 'loofah'
 
+# TODO: This could probably be split up... since you know this is part of a
+# pipeline, after all
+
 module Workflows
   class Analyze
     class Extractor
