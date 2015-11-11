@@ -7,8 +7,12 @@ class NaiveBayes
     @name = name
   end
 
-  def add_topic(topic:)
+  def add(topic:)
     classifier.add_category topic
+  end
+
+  def knows?(topic:)
+    classifier.categories.include? topic
   end
 
   def train(topic:, doc:)

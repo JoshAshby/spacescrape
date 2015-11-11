@@ -1,15 +1,15 @@
 module Workflows
   class Scrape
     class Storer
-      def call bus, env
-        SpaceScrape.logger.debug "caching #{ env[:uri].to_s }"
-
-        Webpage.update_or_create url: env[:uri].to_s do |m|
-          m.links = env[:links]
+      def call bus, payload
+        payload.webpage = Webpage.update_or_create url: payload.uri.to_s do |m|
+          m.links = payload.links
           m.last_hit_at = Time.now.utc
         end
 
-        SpaceScrape.cache.set "body:#{env[:uri].to_s}", env[:body]
+        SpaceScrape.cache.set "body:#{ payload.uri.to_s }", payload.body
+
+        bus.publish to: 'doc:stored', data: payload
       end
     end
   end

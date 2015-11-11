@@ -8,12 +8,12 @@ class ApplicationController
   post '/topics' do
   end
 
-  get '/topics/:id' do
+  get '/topic/:id' do
     @topic = Topic.first id: params[:id]
 
     haml :topic
   end
 
-  put '/topics/:id' do
+  put '/topic/:id' do
   end
 end

@@ -23,11 +23,11 @@ module Workflows
         end
       end
 
-      def call bus, uri
-        return if allowed? uri
+      def call bus, payload
+        return if allowed? payload.uri
 
-        SpaceScrape.logger.debug "#{ uri.to_s } isn't allowed"
-        bus.publish to: 'request:cancel', data: uri
+        SpaceScrape.logger.debug "#{ payload.uri.to_s } isn't allowed"
+        bus.publish to: 'request:cancel', data: payload.uri
         bus.stop!
       end
 

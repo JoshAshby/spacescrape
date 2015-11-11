@@ -1,15 +1,15 @@
 module Workflows
   class Scrape
     class Timeouter
-      def call bus, uri
-        in_timeout = Redis.current.get Redis::Helpers.key(uri.host, :nice)
+      def call bus, payload
+        in_timeout = Redis.current.get Redis::Helpers.key(payload.uri.host, :nice)
 
         unless in_timeout
-          Redis.current.setex Redis::Helpers.key(uri.host, :nice), timeout, Time.now.utc.iso8601
+          Redis.current.setex Redis::Helpers.key(payload.uri.host, :nice), timeout, Time.now.utc.iso8601
           return
         end
 
-        bus.publish to: 'request:reschedule', data: { uri: uri, timeout: timeout }
+        bus.publish to: 'request:reschedule', data: timeout
         bus.stop!
       end
 

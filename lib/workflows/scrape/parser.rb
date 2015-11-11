@@ -4,25 +4,26 @@ require 'byebug'
 module Workflows
   class Scrape
     class Parser
-      def call bus, env
-        @env = env
-        @document = Nokogiri::HTML.parse @env[:body]
+      def call bus, payload
+        @payload = payload
+        nokogiri_document = Nokogiri::HTML.parse payload.body
 
-        unless check_language
+        unless is_english? nokogiri_document
           return bus.stop!
         end
 
-        links = parse_links
+        payload.links = parse_links nokogiri_document
+        payload.nokogiri = nokogiri_document
 
-        bus.publish to: 'request:links', data: links
-        bus.publish to: 'doc:parsed', data: @env.merge({ nokogiri: @document, links: links })
+        bus.publish to: 'request:links', data: payload.links
+        bus.publish to: 'doc:parsed',    data: payload
       end
 
-      def parse_links
-        hrefs = @document.xpath('//a/@href')
+      def parse_links nokogiri_document
+        hrefs = nokogiri_document.xpath('//a/@href')
         links = hrefs.map do |href|
           begin
-            (@env[:uri] + href).to_s.split('#', 2).first
+            (@payload.uri + href).to_s.split('#', 2).first
           rescue URI::InvalidURIError, NoMethodError
             next
           end
@@ -31,10 +32,10 @@ module Workflows
         links
       end
 
-      def check_language
-        lang_attr = @document.xpath '/html/@lang'
+      def is_english? nokogiri_document
+        lang_attr = nokogiri_document.xpath '/html/@lang'
 
-        SpaceScrape.logger.debug "Language of #{ @env[:uri].to_s } is #{ lang_attr }. #{  }"
+        SpaceScrape.logger.debug "Language of #{ @payload.uri.to_s } is #{ lang_attr }. #{  }"
         SpaceScrape.logger.debug "Language matches en? #{ lang_attr.to_s =~ /en/ }" if lang_attr
 
         return true if lang_attr && (lang_attr.to_s =~ /en/) != nil

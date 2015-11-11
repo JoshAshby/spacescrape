@@ -22,15 +22,15 @@ module Workflows
         end
       end
 
-      def call bus, uri
-        SpaceScrape.logger.debug "Fetching url for #{ uri.to_s }"
+      def call bus, payload
+        SpaceScrape.logger.debug "Fetching url for #{ payload.uri.to_s }"
 
         # TODO: handle errors
-        res = @conn.get uri.to_s
+        payload.body = @conn.get payload.uri.to_s
 
-        bus.publish to: 'doc:fetched', data: { uri: uri, body: res.body }
+        bus.publish to: 'doc:fetched', data: payload
       rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError
-        SpaceScrape.logger.error "Problem in fetcher for #{ uri.to_s }"
+        SpaceScrape.logger.error "Problem in fetcher for #{ payload.uri.to_s }"
       end
     end
   end

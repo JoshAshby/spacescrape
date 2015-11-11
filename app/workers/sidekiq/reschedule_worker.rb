@@ -16,7 +16,7 @@ module Workers
 
     def perform url
       Redis.current.del "rescheduled:#{ url }"
-      ScrapeWorker.enqueue({ url: url }.to_json)
+      Workers::ScrapeWorker.enqueue({ url: url }.to_json)
     end
   end
 end

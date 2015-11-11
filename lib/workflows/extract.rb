@@ -1,9 +1,9 @@
 module Workflows
-  class Analyze < Base
+  class Extract < Base
     def initialize
       subscribe to: 'doc:load',      with: Load
-      subscribe to: 'doc:loaded',    with: AnalyzeContent
-      subscribe to: 'doc:analyzed',  with: SaveAnalysis
+      subscribe to: 'doc:loaded' ,   with: ExtractContent
+      subscribe to: 'doc:extracted', with: StoreContent
     end
 
     def process(webpage_id:)

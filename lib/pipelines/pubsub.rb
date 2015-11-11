@@ -67,7 +67,7 @@ module Pipelines
       to = to.to_s
       subs = @subscribers.select do |k, v|
         Array(to).any?{ |t| k.match t }
-      end.values.flatten
+      end.values.flatten.uniq
 
       SpaceScrape.logger.debug "Publishing #{ to } to #{ subs }"
 

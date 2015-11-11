@@ -7,7 +7,7 @@ module Workers
       data = JSON.parse msg
       trainer = Workflows::Train.new
 
-      trainer.process webpage: data['webpage']
+      trainer.process webpage_id: data['webpage_id'], topic_id: data['topic_id']
 
       ack!
     end
