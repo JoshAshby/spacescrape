@@ -30,14 +30,14 @@ class NaiveBayes
 
   def save!
     raw = Marshal.dump @classifier
-    SpaceScrape.cache.set @name, raw
+    SpaceScrape.cache.set "naive-bayes:#{ @name }", raw
   end
 
   def classifier
     return @classifier if @classifier
 
     if SpaceScrape.cache.cached? @name
-      raw = SpaceScrape.cache.get @name
+      raw = SpaceScrape.cache.get "naive-bayes:#{ @name }"
       @classifier = Marshal.load raw
     else
       @classifier = ClassifierReborn::Bayes.new

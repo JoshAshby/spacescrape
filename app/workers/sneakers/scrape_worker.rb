@@ -1,10 +1,8 @@
 module Workers
-  class ScrapeWorker
-    include Sneakers::Worker
-    from_queue 'scrape'
+  class ScrapeWorker < BaseSneaker
+    from_queue 'spacescrape.scrape', env: nil
 
-    def work msg
-      data = JSON.parse msg
+    def perform(url:)
       scraper = Workflows::Scrape.new
 
       scraper.subscribe to: 'request:links' do |bus, links|
@@ -14,12 +12,12 @@ module Workers
       end
 
       scraper.subscribe to: 'request:reschedule' do |bus, timeout|
-        return ack! if Redis.current.exists "rescheduled:#{ data['url'] }"
+        return ack! if Redis.current.exists "rescheduled:#{ url }"
 
-        SpaceScrape.logger.debug "Requeueing sneaker for #{ data['url'] }"
+        SpaceScrape.logger.debug "Requeueing sneaker for #{ url }"
 
-        Redis.current.set "rescheduled:#{ data['url'] }", true
-        RescheduleWorker.perform_in timeout, data['url']
+        Redis.current.set "rescheduled:#{ url }", true
+        RescheduleWorker.perform_in timeout, url
         return ack!
       end
 
@@ -29,10 +27,10 @@ module Workers
       end
 
       SpaceScrape.logger.debug "workflow: #{ scraper }"
-      scraper.process url: data['url']
+      scraper.process url: url
 
       scraper.subscribe to: 'doc:stored' do |bus, payload|
-        Workers::ExtractWorker.enqueue({ webpage_id: payload.webpage.id }.to_json)
+        Workers::ExtractWorker.perform_async webpage_id: payload.webpage.id
       end
 
       ack!

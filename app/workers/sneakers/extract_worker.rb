@@ -1,13 +1,11 @@
 module Workers
-  class ExtractWorker
-    include Sneakers::Worker
-    from_queue 'extract'
+  class ExtractWorker < BaseSneaker
+    from_queue 'spacescrape.extract', env: nil
 
-    def work msg
-      data = JSON.parse msg
+    def perform(webpage_id:)
       extractor = Workflows::Extract.new
 
-      extractor.process webpage_id: data['webpage_id']
+      extractor.process webpage_id: webpage_id
 
       ack!
     end

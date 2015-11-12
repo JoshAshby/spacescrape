@@ -1,13 +1,11 @@
 module Workers
-  class TrainWorker
-    include Sneakers::Worker
-    from_queue 'train'
+  class TrainWorker < BaseSneaker
+    from_queue 'spacescrape.train', env: nil
 
-    def work msg
-      data = JSON.parse msg
+    def perform(webpage_id:, topic_id:)
       trainer = Workflows::Train.new
 
-      trainer.process webpage_id: data['webpage_id'], topic_id: data['topic_id']
+      trainer.process webpage_id: webpage_id, topic_id: topic_id
 
       ack!
     end

@@ -1,13 +1,11 @@
 module Workers
-  class AnalyzeWorker
-    include Sneakers::Worker
-    from_queue 'analyze'
+  class AnalyzeWorker < BaseSneaker
+    from_queue 'spacescrape.analyze', env: nil
 
-    def work msg
-      data = JSON.parse msg
+    def perform(webpage_id:)
       analyzer = Workflows::Analyze.new
 
-      analyzer.process webpage_id: data['webpage_id']
+      analyzer.process webpage_id: webpage_id
 
       ack!
     end
