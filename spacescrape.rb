@@ -71,6 +71,8 @@ def recursive_require dir
     required_directories << tuple[1]
   end
 
+  ap files
+
   (Dir[current_directory.join('*/')] - required_directories).each do |directory|
     recursive_require directory
   end
