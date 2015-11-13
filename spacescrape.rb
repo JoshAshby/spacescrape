@@ -45,9 +45,9 @@ end
 # require_relatives all over the place, leaving us to only require the external
 # gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
 def recursive_require dir
-  directory = SpaceScrape.root.join dir
+  current_directory = SpaceScrape.root.join dir
 
-  files = Dir[directory.join('*.rb')].inject({ nested: [], unnested: [] }) do |memo, file|
+  files = Dir[current_directory.join('*.rb')].inject({ nested: [], unnested: [] }) do |memo, file|
     directory = file.gsub('.rb', '/')
     if File.directory? directory
       memo[:nested] << [ file, directory ]
@@ -58,16 +58,21 @@ def recursive_require dir
     memo
   end
 
-  # ap files
-
   files[:unnested].each do |file|
     require file
   end
 
+  required_directories = []
   files[:nested].each do |tuple|
     require tuple[0]
 
     recursive_require tuple[1]
+
+    required_directories << tuple[1]
+  end
+
+  (Dir[current_directory.join('*/')] - required_directories).each do |directory|
+    recursive_require directory
   end
 end
 

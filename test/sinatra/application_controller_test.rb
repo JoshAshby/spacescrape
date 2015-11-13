@@ -4,7 +4,7 @@ class ApplicationControllerTest < MiniTest::Test
   include Rack::Test::Methods
 
   def app
-    ApplicationController
+    ::ApplicationController
   end
 
   def test_get_index
