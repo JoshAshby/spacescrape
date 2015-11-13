@@ -58,14 +58,12 @@ def recursive_require dir
     memo
   end
 
-  ap files
-
-  files[:unnested].each do |file|
+  files[:unnested].sort.each do |file|
     require file
   end
 
   required_directories = []
-  files[:nested].each do |tuple|
+  files[:nested].sort{ |x, y| x[0]<=>y[0] }.each do |tuple|
     require tuple[0]
 
     recursive_require tuple[1]
@@ -73,7 +71,7 @@ def recursive_require dir
     required_directories << tuple[1]
   end
 
-  (Dir[current_directory.join('*/')] - required_directories).each do |directory|
+  (Dir[current_directory.join('*/')] - required_directories).sort.each do |directory|
     recursive_require directory
   end
 end
