@@ -44,13 +44,35 @@ end
 # Require all of our code... This allows us to avoid having to do a lot of
 # require_relatives all over the place, leaving us to only require the external
 # gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
-%w| lib/monkey_patches config/initializers app lib |.each do |dir|
-  directory = SpaceScrape.root.join dir, '**/*.rb'
+def recursive_require dir
+  directory = SpaceScrape.root.join dir
 
-  files = Dir[directory]
-  files.sort.each do |file|
-    require file unless File.directory? file
+  files = Dir[directory.join('*.rb')].inject({ nested: [], unnested: [] }) do |memo, file|
+    directory = file.gsub('.rb', '/')
+    if File.directory? directory
+      memo[:nested] << [ file, directory ]
+    else
+      memo[:unnested] << file
+    end
+
+    memo
   end
+
+  # ap files
+
+  files[:unnested].each do |file|
+    require file
+  end
+
+  files[:nested].each do |tuple|
+    require tuple[0]
+
+    recursive_require tuple[1]
+  end
+end
+
+%w| lib/monkey_patches config/initializers app lib |.each do |dir|
+  recursive_require dir
 end
 
 # config.ru takes care of firing up the sinatra server, so now all we have to
