@@ -26,7 +26,8 @@ module Workflows
         SpaceScrape.logger.debug "Fetching url for #{ payload.uri.to_s }"
 
         # TODO: handle errors
-        payload.body = @conn.get payload.uri.to_s
+        payload.res = @conn.get payload.uri.to_s
+        payload.body = payload.res.body
 
         bus.publish to: 'doc:fetched', data: payload
       rescue FaradayMiddleware::RedirectLimitReached, Faraday::TimeoutError, URI::InvalidURIError

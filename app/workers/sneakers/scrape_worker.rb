@@ -5,11 +5,11 @@ module Workers
     def perform(url:)
       scraper = Workflows::Scrape.new
 
-      scraper.subscribe to: 'request:links' do |bus, links|
-        links.each do |link|
-          self.class.enqueue({ url: link }.to_json)
-        end
-      end
+      # scraper.subscribe to: 'request:links' do |bus, links|
+        # links.each do |link|
+          # self.class.enqueue({ url: link }.to_json)
+        # end
+      # end
 
       scraper.subscribe to: 'request:reschedule' do |bus, timeout|
         return ack! if Redis.current.exists "rescheduled:#{ url }"

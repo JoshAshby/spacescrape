@@ -24,7 +24,7 @@ class Cache
   end
 
   def clear name
-    FileUtils.rm cache_path(name)
+    FileUtils.rm cache_path(name) if cached?(name)
   end
 
   def cached? name

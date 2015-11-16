@@ -6,6 +6,7 @@ require 'byebug'
 
 require 'sinatra'
 require 'tilt/erb'
+require 'yaml'
 
 module SpaceScrape
   module_function
@@ -29,7 +30,7 @@ module SpaceScrape
     erbd_yaml = YAML.load erb
 
     erbd_yaml[SpaceScrape.environment.to_s] || {}
-  rescue Psych::SyntaxError => e
+  rescue YAML::SyntaxError => e
     raise "YAML syntax error occurred while parsing #{ yaml }. " \
       "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
       "Error: #{ e.message }"

@@ -6,7 +6,7 @@ module Workflows
     class Parser
       def call bus, payload
         @payload = payload
-        nokogiri_document = Nokogiri::HTML.parse payload.body
+        nokogiri_document = Nokogiri::HTML.parse payload.bodyy
 
         unless is_english? nokogiri_document
           return bus.stop!
@@ -33,14 +33,16 @@ module Workflows
       end
 
       def is_english? nokogiri_document
-        lang_attr = nokogiri_document.xpath '/html/@lang'
+        lang_attr = nokogiri_document.xpath('/html/@lang').first
 
-        SpaceScrape.logger.debug "Language of #{ @payload.uri.to_s } is #{ lang_attr }. #{  }"
-        SpaceScrape.logger.debug "Language matches en? #{ lang_attr.to_s =~ /en/ }" if lang_attr
+        return true unless lang_attr
 
-        return true if lang_attr && (lang_attr.to_s =~ /en/) != nil
+        lang = lang_attr.value
 
-        (lang_attr =~ /^en/) != nil
+        SpaceScrape.logger.debug "Language of #{ @payload.uri.to_s } is #{ lang }"
+        SpaceScrape.logger.debug "Language matches en? #{ lang =~ /en/ }" if lang
+
+        (lang =~ /^en/) != nil
       end
     end
   end

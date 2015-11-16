@@ -6,7 +6,7 @@ module Workers
       def perform_async *args, **opts
         exchange = SpaceScrape.bunny.create_channel.direct "spacescrape.pipeline"
 
-        data = JSON.dump( { args: args, opts: opts }.to_json )
+        data = JSON.dump({ args: args, opts: opts })
 
         exchange.publish data, routing_key: @queue_name.gsub('spacescrape.', ''), content_type: 'application/json'
       end
@@ -20,7 +20,7 @@ module Workers
       data = JSON.parse msg
 
       args = data['args']
-      opts = data['opts'] unless data['opts'] == {}
+      opts = data['opts'].symbolize_keys unless data['opts'] == {}
 
       perform *args, **opts
     end

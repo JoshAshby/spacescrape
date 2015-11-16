@@ -15,7 +15,7 @@ module Workflows
     def process(url:)
       return unless url
 
-      payload = OpenStruct.new uri: URI.parser(url)
+      payload = OpenStruct.new uri: URI.parse(url)
 
       publish to: 'doc:fetch', data: payload
     end

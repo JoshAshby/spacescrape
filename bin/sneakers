@@ -7,6 +7,7 @@ workers = Workers.constants.map do |c|
   const = Workers.const_get c
 
   next unless const.ancestors.include? Sneakers::Worker
+  next unless const.queue_name
 
   const
 end.compact

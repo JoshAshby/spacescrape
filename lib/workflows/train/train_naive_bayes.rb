@@ -4,6 +4,8 @@ module Workflows
       def call bus, payload
         learner = NaiveBayes.new name: 'space'
 
+        ap learner.classifier
+
         learner.add   topic: payload.topic.key
         learner.train topic: payload.topic.key, doc: payload.content
         learner.save!

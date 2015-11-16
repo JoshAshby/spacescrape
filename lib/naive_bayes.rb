@@ -36,7 +36,7 @@ class NaiveBayes
   def classifier
     return @classifier if @classifier
 
-    if SpaceScrape.cache.cached? @name
+    if SpaceScrape.cache.cached? "naive-bayes:#{ @name }"
       raw = SpaceScrape.cache.get "naive-bayes:#{ @name }"
       @classifier = Marshal.load raw
     else
