@@ -10,6 +10,14 @@
 # Unlike ActiveSupport this doesn't contain any bang operators for these
 # methods.
 class Hash
+  def dig *keys
+    keys.inject(self) do |memo, key|
+      break unless memo[key]
+
+      memo[key]
+    end
+  end
+
   def transform_keys
     return self.enum_for :transform_keys unless block_given?
 
@@ -19,7 +27,7 @@ class Hash
     end
   end
 
-  def transform_keys
+  def transform_values
     return self.enum_for :transform_keys unless block_given?
 
     self.reduce(self.class.new) do |memo, (k, v)|
