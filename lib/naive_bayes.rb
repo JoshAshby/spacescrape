@@ -40,7 +40,7 @@ class NaiveBayes
       raw = SpaceScrape.cache.get "naive-bayes:#{ @name }"
       @classifier = Marshal.load raw
     else
-      @classifier = ClassifierReborn::Bayes.new
+      @classifier = ClassifierReborn::Bayes.new auto_categorize: true
       save!
     end
 

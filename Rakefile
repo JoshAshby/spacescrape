@@ -54,10 +54,10 @@ namespace :rabbitmq do
     ch = SpaceScrape.bunny.create_channel
 
     pipeline_exchange = ch.direct 'spacescrape.pipeline'
-    ch.queue('spacescrape.scrape',  durable: true).bind pipeline_exchange, routing_key: 'scrape'
-    ch.queue('spacescrape.extract', durable: true).bind pipeline_exchange, routing_key: 'extract'
-    ch.queue('spacescrape.train',   durable: true).bind pipeline_exchange, routing_key: 'train'
-    ch.queue('spacescrape.analyze', durable: true).bind pipeline_exchange, routing_key: 'analyze'
+    ch.queue('spacescrape.scrape').bind pipeline_exchange, routing_key: 'scrape'
+    ch.queue('spacescrape.extract').bind pipeline_exchange, routing_key: 'extract'
+    ch.queue('spacescrape.train').bind pipeline_exchange, routing_key: 'train'
+    ch.queue('spacescrape.analyze').bind pipeline_exchange, routing_key: 'analyze'
   end
 end
 

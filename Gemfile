@@ -1,6 +1,9 @@
 source 'https://rubygems.org'
 ruby '2.2.2'
 
+# The sadness, but lots of useful helpers
+gem 'activesupport', '~> 4'
+
 # Request making
 gem 'faraday'
 gem 'faraday_middleware'

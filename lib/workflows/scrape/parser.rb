@@ -6,6 +6,11 @@ module Workflows
     class Parser
       def call bus, payload
         @payload = payload
+
+        if payload.body.blank?
+          return bus.stop!
+        end
+
         nokogiri_document = Nokogiri::HTML.parse payload.bodyy
 
         unless is_english? nokogiri_document

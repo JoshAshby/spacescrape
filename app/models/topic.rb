@@ -6,12 +6,12 @@ class Topic < Sequel::Model
   def validate
     super
 
-    errors.add :name, 'cannot be empty' if !name || name.empty?
+    errors.add :name, 'cannot be empty' if name.blank?
   end
 
   def before_save
     return false if super == false
 
-    self.key = self.name.downcase.gsub ' ', '_'
+    self.key = self.name.underscore
   end
 end

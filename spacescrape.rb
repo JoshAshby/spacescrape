@@ -8,6 +8,8 @@ require 'sinatra'
 require 'tilt/erb'
 require 'yaml'
 
+require 'active_support/all'
+
 module SpaceScrape
   module_function
   def root
