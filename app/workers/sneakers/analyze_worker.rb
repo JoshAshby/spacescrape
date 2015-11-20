@@ -1,6 +1,6 @@
 module Workers
   class AnalyzeWorker < BaseSneaker
-    from_queue 'spacescrape.analyze', env: nil
+    work_from :pipeline, :analyze
 
     def perform(webpage_id:)
       analyzer = Workflows::Analyze.new

@@ -1,6 +1,6 @@
 module Workers
   class ExtractWorker < BaseSneaker
-    from_queue 'spacescrape.extract', env: nil
+    work_from :pipeline, :extract
 
     def perform(webpage_id:)
       extractor = Workflows::Extract.new

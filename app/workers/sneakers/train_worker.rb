@@ -1,6 +1,6 @@
 module Workers
   class TrainWorker < BaseSneaker
-    from_queue 'spacescrape.train', env: nil
+    work_from :pipeline, :train
 
     def perform(webpage_id:, topic_id:)
       trainer = Workflows::Train.new

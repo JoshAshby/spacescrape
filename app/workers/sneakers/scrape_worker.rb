@@ -1,6 +1,6 @@
 module Workers
   class ScrapeWorker < BaseSneaker
-    from_queue 'spacescrape.scrape', env: nil
+    work_from :pipeline, :scrape
 
     def perform(url:)
       scraper = Workflows::Scrape.new

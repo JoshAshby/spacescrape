@@ -17,8 +17,8 @@ gem 'ruby-readability'
 
 # Text analysis and ML
 # gem 'words_counted'
-# gem 'classifier-reborn', path: '../contrib/classifier-reborn' # Local
-gem 'classifier-reborn', git: 'https://github.com/JoshAshby/classifier-reborn.git' # Git
+gem 'classifier-reborn', path: '../contrib/classifier-reborn' # Local
+# gem 'classifier-reborn', git: 'https://github.com/JoshAshby/classifier-reborn.git' # Git
 
 # Datastore gems
 gem 'connection_pool'

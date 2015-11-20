@@ -1,6 +1,5 @@
-GIT
-  remote: https://github.com/JoshAshby/classifier-reborn.git
-  revision: 483a2e151e82ef0dcbe655a7298af2889a9fca47
+PATH
+  remote: ../contrib/classifier-reborn
   specs:
     classifier-reborn (3.0.0)
       fast-stemmer (~> 1.0)

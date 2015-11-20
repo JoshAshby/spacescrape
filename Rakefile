@@ -53,11 +53,23 @@ namespace :rabbitmq do
   task setup: :environment do
     ch = SpaceScrape.bunny.create_channel
 
-    pipeline_exchange = ch.direct 'spacescrape.pipeline'
-    ch.queue('spacescrape.scrape').bind pipeline_exchange, routing_key: 'scrape'
-    ch.queue('spacescrape.extract').bind pipeline_exchange, routing_key: 'extract'
-    ch.queue('spacescrape.train').bind pipeline_exchange, routing_key: 'train'
-    ch.queue('spacescrape.analyze').bind pipeline_exchange, routing_key: 'analyze'
+    workers_exchange = ch.direct 'spacescrape.workers'
+    Workers.constants.each do |c|
+      const = Workers.const_get c
+
+      next unless const.ancestors.include? Sneakers::Worker
+      next unless const.queue_name
+      ch.queue( const.queue_name ).bind workers_exchange, routing_key: const.routing_key
+    end
+
+    pubsub_exchange = ch.topic 'spacescrape.pubsub'
+    Subscribers.constants.each do |c|
+      const = Subscribers.const_get c
+
+      next unless const.ancestors.include? Sneakers::Worker
+      next unless const.queue_name
+      ch.queue( const.queue_name ).bind pubsub_exchange, routing_key: "#{ const.namespace }.#", auto_delete: true
+    end
   end
 end
 

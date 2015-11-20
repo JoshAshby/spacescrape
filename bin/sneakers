@@ -3,14 +3,25 @@
 require_relative '../spacescrape'
 require 'sneakers/runner'
 
-workers = Workers.constants.map do |c|
+workers = []
+
+Workers.constants.inject(workers) do |memo, c|
   const = Workers.const_get c
 
-  next unless const.ancestors.include? Sneakers::Worker
-  next unless const.queue_name
+  next memo unless const.ancestors.include? Sneakers::Worker
+  next memo unless const.queue_name
 
-  const
-end.compact
+  memo << const
+end
+
+Subscribers.constants.inject(workers) do |memo, c|
+  const = Subscribers.const_get c
+
+  next memo unless const.ancestors.include? Sneakers::Worker
+  next memo unless const.queue_name
+
+  memo << const
+end
 
 puts "Starting up sneakers workers: #{ workers }"
 

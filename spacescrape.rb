@@ -79,7 +79,7 @@ def recursive_require dir
   end
 end
 
-%w| lib/monkey_patches config/initializers app lib |.each do |dir|
+%w| lib/monkey_patches config/initializers lib app |.each do |dir|
   recursive_require dir
 end
 
