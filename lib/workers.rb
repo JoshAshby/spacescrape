@@ -16,7 +16,7 @@ module Workers
       def work_from *args, **opts
         parts = Array(args).flatten
         @queue_name  = parts.unshift('spacescrape').join '.'
-        @queue_opts  = { env: nil, durable: false }.merge(opts)
+        @queue_opts  = { env: nil, durable: false, exchange: 'spacescrape.workers', exchange_type: :direct }.merge(opts)
         @routing_key = parts.join '.'
       end
     end

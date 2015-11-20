@@ -1,12 +1,11 @@
 defaults: &defaults
   amqp: 'amqp://guest:guest@localhost:5672'
-  exchange: 'spacescrape.workers'
-  exchange_type: direct
 
 development:
   <<: *defaults
   threads: 1
   workers: 1
+  share_threads: true
 
 test:
   <<: *defaults

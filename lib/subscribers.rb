@@ -6,25 +6,29 @@ module PubSub
       attr_accessor :namespace
 
       def subscribe(to:, **opts)
-        @namespace  = to
+        @namespace  = Array(to).flatten.join '.'
         @queue_name = "spacescrape.pubsub.#{ @namespace }"
-        @queue_opts = { env: nil, durable: false }.merge(opts)
+        @queue_opts = { env: nil, durable: false, exchange: 'spacescrape.pubsub', exchange_type: :topic }.merge(opts)
       end
     end
 
-    def work msg
+    def work_with_params msg, delivery_info, metadata
       data = JSON.parse msg
 
-      args = data['args']
-      opts = data['opts'].symbolize_keys unless data['opts'] == {}
+      data_args = data['args']
+      data_opts = data['opts'].symbolize_keys unless data['opts'] == {}
 
-      debugger
+      func = delivery_info[:routing_key].gsub("#{ self.class.namespace.to_s }.", '')
+
+      send(func.to_sym, *data_args, **data_opts)
+    ensure
+      ack!
     end
   end
 
   module_function
-  def publish *args, to:, **opts, &block
-    exchange = SpaceScrape.bunny.create_channel.direct 'spacescrape.pubsub'
+  def publish *args, to:, **opts
+    exchange = SpaceScrape.bunny.create_channel.topic 'spacescrape.pubsub'
 
     data = JSON.dump({ args: args, opts: opts })
 
@@ -35,6 +39,10 @@ end
 module Subscribers
   class Pipeline < PubSub::AsyncSubscriber
     subscribe to: :pipeline
+
+    def test *args
+      ap args
+    end
 
     def scraped *args
       debugger
