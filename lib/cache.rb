@@ -3,6 +3,8 @@ require 'digest'
 class Cache
   def initialize base: 'cache/'
     @base = Pathname.new base
+
+    FileUtils.mkdir_p SpaceScrape.root.join(base)
   end
 
   def key name

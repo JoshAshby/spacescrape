@@ -1,14 +1,13 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require 'awesome_print'
-require 'byebug'
+require'active_support/all'
 
 require 'sinatra'
 require 'tilt/erb'
 require 'yaml'
 
-require 'active_support/all'
+require 'require_all'
 
 module SpaceScrape
   module_function
@@ -39,49 +38,7 @@ module SpaceScrape
   end
 end
 
-# Make sure we have a directory for logs and the cache so things don't complain
-%w| cache logs |.each do |dirname|
-  FileUtils.mkdir_p SpaceScrape.root.join(dirname)
-end
-
-# Require all of our code... This allows us to avoid having to do a lot of
-# require_relatives all over the place, leaving us to only require the external
-# gems that we need. Obviously this has a lot of flaws but meh, Works For Me™
-def recursive_require dir
-  current_directory = SpaceScrape.root.join dir
-
-  files = Dir[current_directory.join('*.rb')].inject({ nested: [], unnested: [] }) do |memo, file|
-    directory = file.gsub('.rb', '/')
-    if File.directory? directory
-      memo[:nested] << [ file, directory ]
-    else
-      memo[:unnested] << file
-    end
-
-    memo
-  end
-
-  files[:unnested].sort.each do |file|
-    require file
-  end
-
-  required_directories = []
-  files[:nested].sort{ |x, y| x[0]<=>y[0] }.each do |tuple|
-    require tuple[0]
-
-    recursive_require tuple[1]
-
-    required_directories << tuple[1]
-  end
-
-  (Dir[current_directory.join('*/')] - required_directories).sort.each do |directory|
-    recursive_require directory
-  end
-end
-
-%w| lib/monkey_patches config/initializers lib app |.each do |dir|
-  recursive_require dir
-end
+require_all %w| lib/monkey_patches config/initializers lib app |
 
 # config.ru takes care of firing up the sinatra server, so now all we have to
 # do is sit back and relax

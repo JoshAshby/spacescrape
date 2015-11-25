@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 ruby '2.2.2'
 
+gem 'require_all'
+
 # The sadness, but lots of useful helpers
 gem 'activesupport', '~> 4'
 

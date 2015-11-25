@@ -2,6 +2,8 @@ require 'logger'
 
 require_relative '../../lib/multi_io'
 
+FileUtils.mkdir_p SpaceScrape.root.join('logs')
+
 module SpaceScrape
   module_function
   def logger

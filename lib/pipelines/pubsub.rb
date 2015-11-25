@@ -77,8 +77,10 @@ module Pipelines
         SpaceScrape.logger.debug "\tPublishing #{ to } to #{ sub }"
 
         break if @stop
+
         sub = sub.new if sub.class == Class
         sub.call self, data
+
         if @stop
           SpaceScrape.logger.debug "Stopping pubsub at #{ to }"
           break

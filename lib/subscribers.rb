@@ -21,6 +21,8 @@ module PubSub
       func = delivery_info[:routing_key].gsub("#{ self.class.namespace.to_s }.", '')
 
       send(func.to_sym, *data_args, **data_opts)
+
+      ack!
     ensure
       ack!
     end
@@ -42,10 +44,6 @@ module Subscribers
 
     def test *args
       ap args
-    end
-
-    def scraped *args
-      debugger
     end
   end
 end
