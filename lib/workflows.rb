@@ -1,18 +1,9 @@
-require 'forwardable'
-
 module Workflows
   class Base
-    extend Forwardable
+    include Concerns::PubSub
 
-    def_delegators :pubsub, :publish, :subscribe
-    def_delegators :stack, :use
-
-    def pubsub
-      @pubsub ||= Pipelines::Pubsub.new
-    end
-
-    def stack
-      @stack ||= Pipelines::Stack.new
+    def initialize
+      setup_class_subscribers!
     end
 
     def process *args

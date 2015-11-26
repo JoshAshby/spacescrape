@@ -1,10 +1,8 @@
 module Workflows
   class Train < Base
-    def initialize
-      subscribe to: 'doc:load',      with: Load
-      subscribe to: 'doc:loaded' ,   with: TrainNaiveBayes
-      subscribe to: 'doc:trained',   with: SaveTraining
-    end
+    subscribe to: 'doc:load',      with: Load
+    subscribe to: 'doc:loaded' ,   with: TrainNaiveBayes
+    subscribe to: 'doc:trained',   with: SaveTraining
 
     def process(webpage_id:, topic_id:)
       payload = OpenStruct.new webpage_id: webpage_id, topic_id: topic_id

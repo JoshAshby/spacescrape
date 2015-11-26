@@ -21,9 +21,9 @@ end
 Redis.current = SpaceScrape.new_redis_connection
 
 Sidekiq.configure_server do |config|
-  config.redis =  ConnectionPool.new(size: 15) { SpaceScrape.new_redis_connection }
+  config.redis = ConnectionPool.new(size: 15) { SpaceScrape.new_redis_connection }
 end
 
 Sidekiq.configure_client do |config|
-  config.redis =  ConnectionPool.new(size: 15) { SpaceScrape.new_redis_connection }
+  config.redis = ConnectionPool.new(size: 15) { SpaceScrape.new_redis_connection }
 end

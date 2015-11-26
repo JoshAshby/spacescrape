@@ -1,5 +1,5 @@
-module PubSub
-  class AsyncSubscriber
+module Subscribers
+  class Async
     include Sneakers::Worker
 
     class << self
@@ -35,15 +35,5 @@ module PubSub
     data = JSON.dump({ args: args, opts: opts })
 
     exchange.publish data, routing_key: to, content_type: 'application/json'
-  end
-end
-
-module Subscribers
-  class Pipeline < PubSub::AsyncSubscriber
-    subscribe to: :pipeline
-
-    def test *args
-      ap args
-    end
   end
 end

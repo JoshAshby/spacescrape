@@ -1,13 +1,13 @@
 require 'bunny'
 require 'sneakers'
 
-Sneakers.configure **SpaceScrape.config_for(:rabbitmq).symbolize_keys
+Sneakers.configure(**SpaceScrape.config_for(:rabbitmq).symbolize_keys)
 Sneakers.logger = SpaceScrape.logger
 
 module SpaceScrape
   module_function
   def bunny
-    @conn ||= Bunny.new.tap do |c|
+    @bunny ||= Bunny.new.tap do |c|
       c.start
     end
   end

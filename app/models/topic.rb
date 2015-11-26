@@ -1,17 +1,19 @@
-class Topic < Sequel::Model
-  one_to_many :keywords
-  one_to_many :settings
-  one_to_many :blacklists
+module Models
+  class Topic < Sequel::Model
+    one_to_many :keywords
+    one_to_many :settings
+    one_to_many :blacklists
 
-  def validate
-    super
+    def validate
+      super
 
-    errors.add :name, 'cannot be empty' if name.blank?
-  end
+      errors.add :name, 'cannot be empty' if name.blank?
+    end
 
-  def before_save
-    return false if super == false
+    def before_save
+      return false if super == false
 
-    self.key = self.name.underscore
+      self.key = self.name.underscore
+    end
   end
 end

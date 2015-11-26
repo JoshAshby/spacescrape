@@ -4,13 +4,13 @@ ruby '2.2.2'
 gem 'require_all'
 
 # The sadness, but lots of useful helpers
-gem 'activesupport', '~> 4'
+gem 'activesupport', '~> 4', require: 'active_support/all'
 
 # Request making
 gem 'faraday'
 gem 'faraday_middleware'
 gem 'typhoeus'
-gem 'robotstxt-parser'
+gem 'robotstxt-parser', require: 'robotstxt'
 
 # Parsing/HTML handling
 gem 'nokogiri'
@@ -53,6 +53,7 @@ gem 'sneakers' # RabbitMQ Backed
 # Frontend
 gem 'sinatra'
 gem 'haml'
+gem 'rabl'
 
 gem 'foreman'
 

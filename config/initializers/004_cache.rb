@@ -1,5 +1,3 @@
-require_relative '../../lib/cache'
-
 module SpaceScrape
   module_function
   def cache

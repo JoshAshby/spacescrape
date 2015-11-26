@@ -1,10 +1,8 @@
 module Workflows
   class Extract < Base
-    def initialize
-      subscribe to: 'doc:load',      with: Load
-      subscribe to: 'doc:loaded' ,   with: ExtractContent
-      subscribe to: 'doc:extracted', with: StoreContent
-    end
+    subscribe to: 'doc:load',      with: Load
+    subscribe to: 'doc:loaded' ,   with: ExtractContent
+    subscribe to: 'doc:extracted', with: StoreContent
 
     def process(webpage_id:)
       payload = OpenStruct.new webpage_id: webpage_id
