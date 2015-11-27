@@ -39,7 +39,7 @@ module SpaceScrape
   end
 end
 
-require_all %w| lib/monkey_patches/* lib/utils/* config/initializers/* lib/* app/* |
+require_rel %w| lib/monkey_patches lib/utils config/initializers lib app |
 
 # config.ru takes care of firing up the sinatra server, so now all we have to
 # do is sit back and relax

@@ -4,6 +4,8 @@ class PubSub
   def initialize
     @subscribers = {}
     @stop        = false
+
+    yield self if block_given?
   end
 
   def make_regex string

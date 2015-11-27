@@ -85,10 +85,23 @@ namespace :test do
     ENV['COVERAGE'] = 'true'
     Rake::Task['test'].execute
   end
+
+  desc "Generates missing test files"
+  task :generate do
+    Dir[ 'lib/**/*.rb', 'app/**/*.rb' ].map do |f|
+      Pathname.new('test') + f.gsub('.rb', '_test.rb')
+    end.each do |filename|
+      unless File.exist? filename
+        puts "Creating #{ filename }"
+        FileUtils.mkdir_p filename.dirname unless File.directory? filename.dirname
+        FileUtils.touch filename
+      end
+    end
+  end
 end
 
 YARD::Rake::YardocTask.new do |t|
-  t.files = ['lib/**/*.rb', 'sinatra/**/*.rb', 'workers/**/*.rb', 'models/**/*.rb', 'initializers/**/*.rb', 'spacescrape.rb']
+  t.files = ['lib/**/*.rb', 'app/**/*.rb', 'initializers/**/*.rb', 'spacescrape.rb']
   t.options = [ '-', 'README.md' ]
   # t.stats_options = ['--list-undoc']
 end

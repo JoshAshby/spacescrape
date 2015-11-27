@@ -9,7 +9,6 @@ DB = Sequel.connect(
 
 DB.extension :pagination
 
-puts "SQL"
 Sequel::Model.db = DB
 
 Sequel.default_timezone = :utc
