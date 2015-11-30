@@ -26,6 +26,7 @@ module Workflows
 
       def parse_links nokogiri_document
         hrefs = nokogiri_document.xpath('//a/@href')
+        debugger
         links = hrefs.map do |href|
           begin
             (@payload.uri + href).to_s.split('#', 2).first

@@ -2,7 +2,7 @@ module Workflows
   class Scrape
     class Cacher
       def call bus, payload
-        payload.model = Webpage.find url: payload.uri.to_s
+        payload.model = Models::Webpage.find url: payload.uri.to_s
         return unless payload.model
 
         cache_age = Time.now - payload.model.last_hit_at

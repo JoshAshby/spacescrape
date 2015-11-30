@@ -6,7 +6,7 @@ module Workflows
           return bus.stop!
         end
 
-        payload.webpage = Webpage.update_or_create url: payload.uri.to_s do |m|
+        payload.webpage = Models::Webpage.update_or_create url: payload.uri.to_s do |m|
           m.links = payload.links
           m.last_hit_at = Time.now.utc
         end

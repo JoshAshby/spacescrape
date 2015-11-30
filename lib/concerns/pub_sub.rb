@@ -26,7 +26,7 @@ module Concerns
     end
 
     def bus
-      @bus ||= PubSub.new
+      @bus ||= ::PubSub.new
     end
 
     def subscribe to:, with: nil, &block

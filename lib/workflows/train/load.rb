@@ -2,8 +2,8 @@ module Workflows
   class Train
     class Load
       def call bus, payload
-        payload.webpage = Webpage.find id: payload.webpage_id
-        payload.topic   = Topic.find   id: payload.topic_id
+        payload.webpage = Models::Webpage.find id: payload.webpage_id
+        payload.topic   = Models::Topic.find   id: payload.topic_id
         return bus.stop! unless payload.webpage || payload.topic
 
         payload.uri     = URI.parse payload.webpage.url

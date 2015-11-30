@@ -2,7 +2,7 @@ module Workflows
   class Extract
     class Load
       def call bus, payload
-        payload.webpage = Webpage.find id: payload.webpage_id
+        payload.webpage = Models::Webpage.find id: payload.webpage_id
         return bus.stop! unless payload.webpage
 
         payload.uri  = URI.parse payload.webpage.url
