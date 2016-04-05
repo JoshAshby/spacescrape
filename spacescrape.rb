@@ -1,9 +1,6 @@
 require 'rubygems'
 require 'bundler/setup'
 
-Bundler.require
-
-require 'tilt/erb'
 require 'yaml'
 
 require 'require_all'
@@ -39,7 +36,9 @@ module SpaceScrape
   end
 end
 
-require_rel %w| lib/monkey_patches lib/utils config/initializers lib app |
+Bundler.require :default, SpaceScrape.environment
+
+require_rel %w| lib/utils config/initializers lib app |
 
 # config.ru takes care of firing up the sinatra server, so now all we have to
 # do is sit back and relax

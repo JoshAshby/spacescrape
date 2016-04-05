@@ -7,8 +7,21 @@ module Subscribers
 
       def subscribe(to:, **opts)
         @namespace  = Array(to).flatten.join '.'
+
         @queue_name = "spacescrape.pubsub.#{ @namespace }"
-        @queue_opts = { env: nil, durable: false, exchange: 'spacescrape.pubsub', exchange_type: :topic }.merge(opts)
+        @queue_opts = {
+          env: nil,
+          exchange: 'spacescrape.pubsub',
+          exchange_type: :topic,
+          queue_options: {
+            durable: false,
+            auto_delete: true
+          },
+          exchange_options: {
+            durable: false,
+            auto_delete: false
+          }
+        }.merge(opts)
       end
     end
 

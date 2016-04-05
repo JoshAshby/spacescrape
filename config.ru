@@ -1,4 +1,4 @@
 require './spacescrape'
 require 'sidekiq/web'
 
-run Rack::URLMap.new('/' => Controllers::ApplicationController, '/sidekiq' => Sidekiq::Web)
+run Rack::URLMap.new('/sidekiq' => Sidekiq::Web)

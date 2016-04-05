@@ -14,8 +14,8 @@ module Workflows
       end
 
       def timeout
-        @min ||= Models::Setting.find({ name: 'timeout_min' }).value.to_i
-        @max ||= Models::Setting.find({ name: 'timeout_max' }).value.to_i
+        @min ||= Setting.find({ name: 'timeout_min' }).value.to_i
+        @max ||= Setting.find({ name: 'timeout_max' }).value.to_i
 
         @jitter_threshold ||= @max - @min
         jitter = SecureRandom.random_number @jitter_threshold

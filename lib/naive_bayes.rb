@@ -29,8 +29,11 @@ class NaiveBayes
   end
 
   def save!
-    raw = Marshal.dump @classifier
-    SpaceScrape.cache.set "naive-bayes:#{ @name }", raw
+    raw_classifier = Marshal.dump @classifier
+    SpaceScrape.cache.set "naive-bayes:#{ @name }", raw_classifier
+
+    raw_trained_docs = Marshal.dump @trained_docs
+    SpaceScrape.cache.set "naive-bayes:#{ @name }:documents", raw_trained_docs
   end
 
   def classifier
@@ -45,5 +48,19 @@ class NaiveBayes
     end
 
     @classifier
+  end
+
+  def trained_docs
+    return @trained_docs if @trained_docs
+
+    if SpaceScrape.cache.cached? "naive-bayes:#{ name }:documents"
+      raw = SpaceScrape.cache.get "naive-bayes:#{ name }:documents"
+      @trained_docs = Marhsal.load raw
+    else
+      @trained_docs = []
+      save!
+    end
+
+    @trained_docs
   end
 end

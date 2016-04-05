@@ -11,7 +11,7 @@ module Workflows
           return bus.stop!
         end
 
-        nokogiri_document = Nokogiri::HTML.parse payload.bodyy
+        nokogiri_document = Nokogiri::HTML.parse payload.body
 
         unless is_english? nokogiri_document
           return bus.stop!
@@ -26,7 +26,7 @@ module Workflows
 
       def parse_links nokogiri_document
         hrefs = nokogiri_document.xpath('//a/@href')
-        debugger
+
         links = hrefs.map do |href|
           begin
             (@payload.uri + href).to_s.split('#', 2).first

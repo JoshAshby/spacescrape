@@ -4,7 +4,7 @@ class Cache
   def initialize base: 'cache/'
     @base = Pathname.new base
 
-    FileUtils.mkdir_p @base
+    @base.mkpath
   end
 
   def key name
@@ -33,11 +33,10 @@ class Cache
   def cache_path name
     sha_hash = key name
 
-    cache_key = [ sha_hash[0..1], sha_hash[2..3], sha_hash[4..-1] ]
+    filename = @base.join sha_hash[0..1], sha_hash[2..3], sha_hash[4..-1]
 
-    dirname = @base.join(*cache_key[0..1])
-    FileUtils.mkdir_p dirname
+    filename.parent.mkpath
 
-    dirname.join cache_key[2]
+    filename
   end
 end

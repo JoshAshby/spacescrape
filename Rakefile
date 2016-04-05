@@ -59,7 +59,7 @@ namespace :rabbitmq do
 
       next unless const.ancestors.include? Sneakers::Worker
       next unless const.queue_name
-      ch.queue( const.queue_name ).bind workers_exchange, routing_key: const.routing_key
+      ch.queue( const.queue_name ).bind workers_exchange, routing_key: const.routing_key, durable: false, auto_delete: false
     end
 
     pubsub_exchange = ch.topic 'spacescrape.pubsub'
@@ -68,33 +68,58 @@ namespace :rabbitmq do
 
       next unless const.ancestors.include? Sneakers::Worker
       next unless const.queue_name
-      ch.queue( const.queue_name ).bind pubsub_exchange, routing_key: "#{ const.namespace }.#", auto_delete: true
+      ch.queue( const.queue_name ).bind pubsub_exchange, routing_key: "#{ const.namespace }.#", durable: false, auto_delete: true
     end
   end
 end
 
 Rake::TestTask.new do |t|
+  t.libs << "lib"
+  t.libs << "test"
   t.pattern = "test/**/*test.rb"
 end
 
+ENV['COVERAGE'] = 'true'
 task default: :test
 
 namespace :test do
   desc 'Generates a coverage report'
-  task :coverage do
-    ENV['COVERAGE'] = 'true'
+  task :nocoverage do
+    ENV['COVERAGE'] = 'false'
     Rake::Task['test'].execute
   end
 
   desc "Generates missing test files"
-  task :generate do
+  task generate: :environment do
+    template = File.read ETL.root.join('templates', 'test.rb.erb')
+
     Dir[ 'lib/**/*.rb', 'app/**/*.rb' ].map do |f|
-      Pathname.new('test') + f.gsub('.rb', '_test.rb')
-    end.each do |filename|
+      filename = Pathname.new('test') + f.gsub('.rb', '_test.rb')
       unless File.exist? filename
         puts "Creating #{ filename }"
-        FileUtils.mkdir_p filename.dirname unless File.directory? filename.dirname
-        FileUtils.touch filename
+
+        template_context = Class.new do
+          def initialize f
+            @f = f
+          end
+
+          def class_name
+            @f.gsub('.rb', '').gsub('lib/', '').camelcase.gsub('::', '')
+          end
+
+          def relative_count
+            @f.count('/')
+          end
+
+          def get_binding
+            binding
+          end
+        end.new(f).get_binding
+
+        test_output = ERB.new(template, nil, '>').result template_context
+
+        filename.parent.mkpath
+        File.write filename, test_output
       end
     end
   end

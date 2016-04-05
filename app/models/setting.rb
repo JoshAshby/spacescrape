@@ -1,5 +1,3 @@
-module Models
-  class Setting < Sequel::Model
-    many_to_one :topic
-  end
+class Setting < Sequel::Model
+  many_to_one :topic
 end

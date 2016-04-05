@@ -1,31 +1,38 @@
+ENV['RACK_ENV'] = 'test'
+
 if ENV['COVERAGE']
   require 'simplecov'
   SimpleCov.start do
     add_filter 'test/'
     add_filter '.gems/'
     add_filter '.bundle/'
+
     add_filter 'cache/'
     add_filter 'db/'
 
-    command_name 'Mintest'
+    add_filter 'config/'
+
+    minimum_coverage 50
+    refuse_coverage_drop
+
+    command_name 'Minitest'
 
     add_group 'Initializers', 'config/initializers'
     add_group 'Models',       'app/models'
     add_group 'Workers',      'app/workers'
-    add_group 'Sinatra',      'app/sinatra'
+    add_group 'Subscribers',  'app/subscribers'
     add_group 'Lib',          'lib'
   end
 end
-
-ENV['RACK_ENV'] = 'test'
 
 require 'minitest/reporters'
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
 require 'minitest/autorun'
-require 'rack/test'
+require 'minitest/stub_any_instance'
 
 require_relative '../spacescrape.rb'
+require_rel 'mocks/', 'helpers/'
 
 require 'sidekiq/testing'
 Sidekiq::Testing.fake!    # fake is the default mode
@@ -37,6 +44,6 @@ module SidekiqMinitestSupport
   end
 end
 
-class MiniTest::Test
+class SidekiqTestCase
   include SidekiqMinitestSupport
 end
